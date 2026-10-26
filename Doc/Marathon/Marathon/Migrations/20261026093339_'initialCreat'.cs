@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Marathon.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreate : Migration
+    public partial class initialCreat : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -111,6 +111,7 @@ namespace Marathon.Migrations
                 columns: table => new
                 {
                     ResultId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Winner = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ParticipantEventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     finish_position = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     finish_time_seconds = table.Column<string>(type: "nvarchar(max)", nullable: false),
