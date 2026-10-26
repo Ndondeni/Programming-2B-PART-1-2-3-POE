@@ -2,6 +2,8 @@
 {
     public class CreateResultDTO
     {
+       public required string Winner { get; set; }
+
         public required Guid ParticipantEventId { get; set; }
         public required string finish_position { get; set; }
         public required string finish_time_seconds { get; set; }

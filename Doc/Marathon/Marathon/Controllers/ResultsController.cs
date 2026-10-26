@@ -31,6 +31,7 @@ namespace Marathon.Controllers
                 .Select(r => new
                 {
                     r.ResultId,
+                    r.Winner,
                     r.ParticipantEventId,
                     r.finish_position,
                     r.finish_time_seconds,
@@ -108,6 +109,7 @@ namespace Marathon.Controllers
             var result = new Result
             {
                 ParticipantEventId  = dto.ParticipantEventId,
+                Winner = dto.Winner,
                 finish_position     = dto.finish_position,
                 finish_time_seconds = dto.finish_time_seconds,
                 pace_pace_km        = dto.pace_pace_km,
