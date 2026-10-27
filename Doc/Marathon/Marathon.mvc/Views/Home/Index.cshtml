@@ -1,8 +1,141 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Marathon.mvc.Models.dto.DashboardDto
+
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<link rel="stylesheet"
+      href="~/css/dashboard.css"
+      asp-append-version="true" />
+
+<h1 class="display-6 mb-4">Race Day Dashboard</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col">
+        <div class="card p-3 text-center">
+            <h3>@Model.UserCount</h3>
+            <small>Users</small>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card p-3 text-center">
+            <h3>@Model.EventCount</h3>
+            <small>Events</small>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card p-3 text-center">
+            <h3>@Model.CategoryCount</h3>
+            <small>Categories</small>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card p-3 text-center">
+            <h3>@Model.EnrolmentCount</h3>
+            <small>Enrolments</small>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card p-3 text-center">
+            <h3>@Model.ResultCount</h3>
+            <small>Results</small>
+        </div>
+    </div>
 </div>
+
+<div class="card p-4 mb-4">
+    <h2 class="h5">Total Revenue</h2>
+    <h3>R @Model.TotalRevenue.ToString("N2")</h3>
+</div>
+
+<h2 class="h5 mt-4">Upcoming Events</h2>
+
+@if (Model.UpcomingEvents.Count == 0)
+{
+    <div class="alert alert-info">No events available.</div>
+}
+else
+{
+    <div class="table-responsive mb-4">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Location</th>
+                    <th>Venue</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.UpcomingEvents)
+                {
+                    <tr>
+                        <td>@e.EventName</td>
+                        <td>@e.Location</td>
+                        <td>@e.Venue</td>
+                        <td>@e.EventDate.ToString("dd MMM yyyy")</td>
+                        <td>@e.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<h2 class="h5 mt-4">Categories</h2>
+
+<div class="card-container mb-4">
+    @foreach (var c in Model.Categories)
+    {
+        <div class="card">
+            <h3 class="card-title">@c.CategoryName</h3>
+            <p>Ages: @c.MinAge - @c.MaxAge</p>
+            <p>Gender: @c.GenderRestrictions</p>
+            <p>Maximum participants: @c.MaxParticipants</p>
+        </div>
+    }
+</div>
+
+<h2 class="h5 mt-4">Recent Enrolments</h2>
+
+@if (Model.RecentEnrolments.Count == 0)
+{
+    <div class="alert alert-info">No enrolments available.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Event ID</th>
+                    <th>Category ID</th>
+                    <th>Enrolment Date</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Amount Paid</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.RecentEnrolments)
+                {
+                    <tr>
+                        <td>@e.UserId</td>
+                        <td>@e.EventId</td>
+                        <td>@e.CategoryId</td>
+                        <td>@e.enrolment_date.ToString("dd MMM yyyy")</td>
+                        <td>@e.enrolment_status</td>
+                        <td>@e.payment_status</td>
+                        <td>R @e.amount_paid.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
