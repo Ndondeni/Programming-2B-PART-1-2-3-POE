@@ -11,7 +11,7 @@ public class AccountController : Controller
     public IActionResult Index(string? returnUrl = null)
     {
         if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString("Token")))
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Home");
 
         ViewData["ReturnUrl"] = returnUrl;
         return View(new LoginDTO());
@@ -25,34 +25,45 @@ public class AccountController : Controller
 
         var client = _http.CreateClient("ApiClient");
 
-        var response = await client.PostAsJsonAsync("api/Account/loginUser",
-            new { Email = model.Email, Password = model.Password });
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            ModelState.AddModelError(string.Empty, "Invalid email or password.");
+            var response = await client.PostAsJsonAsync("api/Account/loginUser",
+                new { Email = model.Email, Password = model.Password });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid email or password.");
+                return View(model);
+            }
+
+            var login = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+            if (login is null || string.IsNullOrWhiteSpace(login.Token))
+            {
+                ModelState.AddModelError(string.Empty, "Login failed. Please try again.");
+                return View(model);
+            }
+
+            HttpContext.Session.SetString("Token", login.Token);
+            HttpContext.Session.SetString("Role", login.User?.Role ?? "User");
+            HttpContext.Session.SetString("Email", login.User?.Email ?? string.Empty);
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index", "Home");
+        }
+        catch (HttpRequestException)
+        {
+            ModelState.AddModelError(string.Empty, "Login service is unavailable. Please start the API and try again.");
             return View(model);
         }
-
-        
-        var login = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-        if (login is null || string.IsNullOrWhiteSpace(login.Token))
+        catch (TaskCanceledException)
         {
-            ModelState.AddModelError(string.Empty, "Login failed. Please try again.");
+            ModelState.AddModelError(string.Empty, "The login request timed out. Please try again.");
             return View(model);
         }
-
-        HttpContext.Session.SetString("Token", login.Token);
-        HttpContext.Session.SetString("Role", login.User?.Role ?? "User");
-        HttpContext.Session.SetString("Email", login.User?.Email ?? string.Empty);
-
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            return Redirect(returnUrl);
-
-        return RedirectToAction("Index", "Dashboard");
     }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -61,14 +72,16 @@ public class AccountController : Controller
         HttpContext.Session.Clear();
         return RedirectToAction(nameof(Index));
     }
+
     [HttpGet]
     public IActionResult SignUp()
     {
         if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString("Token")))
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Home");
 
         return View(new SignUpDTO());
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SignUp(SignUpDTO model)
@@ -96,7 +109,7 @@ public class AccountController : Controller
         }
         catch (HttpRequestException)
         {
-            ModelState.AddModelError(string.Empty, "Registration service unavailable. Try again.");
+            ModelState.AddModelError(string.Empty, "Registration service is unavailable. Try again.");
             return View(model);
         }
 

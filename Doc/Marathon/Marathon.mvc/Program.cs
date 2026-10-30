@@ -50,7 +50,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
-// Expose concrete type — resolves to the SAME HttpClient-backed instance
+// Expose concrete type ï¿½ resolves to the SAME HttpClient-backed instance
 builder.Services.AddScoped<AdminDashboardService>(sp =>
     (AdminDashboardService)sp.GetRequiredService<IAdminDashboardService>());
 
@@ -69,11 +69,11 @@ app.UseStaticFiles();
 app.UseSession();          // must be before UseRouting
 app.UseRouting();
 
-app.UseAuthentication();   // was commented out — required for User.Identity
+app.UseAuthentication();   // was commented out ï¿½ required for User.Identity
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Index}/{id?}");
 
 app.Run();
