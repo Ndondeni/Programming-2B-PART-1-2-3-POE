@@ -1,0 +1,183 @@
+@model Marathon.mvc.Models.dto.DashboardDto
+@{
+    ViewData["Title"] = "My Dashboard";
+    string StatusClass(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status)) return "status status-ended";
+        var s = status.Trim();
+
+        if (s.Equals("Upcoming", StringComparison.OrdinalIgnoreCase) ||
+            s.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+            return "status status-upcoming";
+
+        if (s.Equals("Paid", StringComparison.OrdinalIgnoreCase) ||
+            s.Equals("Active", StringComparison.OrdinalIgnoreCase) ||
+            s.Equals("Approved", StringComparison.OrdinalIgnoreCase))
+            return "status status-active";
+
+        return "status status-ended";
+    }
+
+    var totalPaid = Model.Payments
+        .Where(p => string.Equals(p.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase))
+        .Sum(p => p.Amount);
+}
+<link rel="stylesheet" href="~/css/dashboard.css" />
+
+<div class="events-page">
+    <div class="page-heading">
+        <div>
+            <h2>Welcome back</h2>
+            <p>Your marathons, payments, and results at a glance.</p>
+        </div>
+    </div>
+
+    <div class="event-stats">
+        <div class="stat-card">
+            <span>My Enrolments</span>
+            <h3>@Model.RecentEnrolments.Count</h3>
+        </div>
+        <div class="stat-card">
+            <span>Upcoming Events</span>
+            <h3>@Model.UpcomingEvents.Count</h3>
+        </div>
+        <div class="stat-card">
+            <span>Results</span>
+            <h3>@Model.RecentResults.Count</h3>
+        </div>
+        <div class="stat-card featured">
+            <span>Total Paid</span>
+            <h3>R @totalPaid.ToString("0.00")</h3>
+        </div>
+    </div>
+
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>My Enrolments</h4>
+            <span class="count-badge">@Model.RecentEnrolments.Count</span>
+        </div>
+
+        @if (!Model.RecentEnrolments.Any())
+        {
+            <div class="empty-state">
+                <h5>No enrolments yet</h5>
+                <p>Register for an event to see it here.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.RecentEnrolments)
+                        {
+                            var match = Model.UpcomingEvents.FirstOrDefault(e => e.EventId == item.EventId);
+                            <tr>
+                                <td class="event-name">@(match?.EventName ?? "Unknown event")</td>
+                                <td>@(match?.EventDate.ToString("dd MMM yyyy") ?? item.enrolment_date.ToString("dd MMM yyyy"))</td>
+                                <td><span class="@StatusClass(item.enrolment_status)">@item.enrolment_status</span></td>
+                                <td><span class="@StatusClass(item.payment_status)">@item.payment_status</span></td>
+                                <td>R @item.amount_paid.ToString("0.00")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>Upcoming Events</h4>
+            <span class="count-badge">@Model.UpcomingEvents.Count</span>
+        </div>
+
+        @if (!Model.UpcomingEvents.Any())
+        {
+            <div class="empty-state">
+                <h5>No upcoming events</h5>
+                <p>Check back later for new races.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Venue</th>
+                            <th>Date</th>
+                            <th>Distance</th>
+                            <th>Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.UpcomingEvents)
+                        {
+                            <tr>
+                                <td class="event-name">@item.EventName</td>
+                                <td>@item.Location</td>
+                                <td>@item.EventDate.ToString("dd MMM yyyy")</td>
+                                <td>@item.DistanceKm km</td>
+                                <td>R @item.EventFee.ToString("0.00")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>Recent Results</h4>
+            <span class="count-badge">@Model.RecentResults.Count</span>
+        </div>
+
+        @if (!Model.RecentResults.Any())
+        {
+            <div class="empty-state">
+                <h5>No results yet</h5>
+                <p>Your race results will appear here once available.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th>Winner</th>
+                            <th>Position</th>
+                            <th>Time</th>
+                            <th>Overall Rank</th>
+                            <th>Prize</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.RecentResults)
+                        {
+                            <tr>
+                                <td class="event-name">@item.Winner</td>
+                                <td>@item.finish_position</td>
+                                <td>@item.finish_time_seconds</td>
+                                <td>@item.overall_rank</td>
+                                <td>R @item.prize_money.ToString("0.00")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

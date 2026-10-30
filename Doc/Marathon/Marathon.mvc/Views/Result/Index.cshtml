@@ -1,0 +1,57 @@
+@model List<Marathon.mvc.Models.dto.ResultDto>
+@{
+    ViewData["Title"] = "Results";
+}
+<link rel="stylesheet" href="~/css/dashboard.css" />
+
+<div class="events-page">
+    <div class="page-heading">
+        <div>
+            <h2>Results</h2>
+            <p>Latest finish positions and leaderboard data.</p>
+        </div>
+    </div>
+
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>Race Results</h4>
+            <span class="count-badge">@Model.Count</span>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <h5>No results found</h5>
+                <p>No race results are available yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th>Winner</th>
+                            <th>Position</th>
+                            <th>Time</th>
+                            <th>Overall Rank</th>
+                            <th>Prize</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="event-name">@item.Winner</td>
+                                <td>@item.finish_position</td>
+                                <td>@item.finish_time_seconds</td>
+                                <td>@item.overall_rank</td>
+                                <td>R @item.prize_money.ToString("0.00")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

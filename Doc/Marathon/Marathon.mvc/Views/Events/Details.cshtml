@@ -1,32 +1,36 @@
 ﻿@model Marathon.mvc.Models.dto.EventDto
 @{
-    ViewData["Title"] = "Event Details";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = Model.EventName;
 }
-<h3>@Model.EventName</h3>
-<div class="card p-4 shadow-sm">
-    <dl class="row mb-0">
-        <dt class="col-sm-3">Date</dt>
-        <dd class="col-sm-9">@Model.EventDate.ToString("dd MMM yyyy")</dd>
-        <dt class="col-sm-3">Location</dt>
-        <dd class="col-sm-9">@Model.Location</dd>
-        <dt class="col-sm-3">Venue</dt>
-        <dd class="col-sm-9">@Model.Venue</dd>
-        <dt class="col-sm-3">Type</dt>
-        <dd class="col-sm-9">@Model.EventType</dd>
-        <dt class="col-sm-3">Distance</dt>
-        <dd class="col-sm-9">@Model.DistanceKm km</dd>
-        <dt class="col-sm-3">Fee</dt>
-        <dd class="col-sm-9">@Model.EventFee.ToString("C")</dd>
-        <dt class="col-sm-3">Status</dt>
-        <dd class="col-sm-9"><span class="badge bg-info">@Model.EventStatus</span></dd>
-        <dt class="col-sm-3">Created</dt>
-        <dd class="col-sm-9">@Model.CreatedAt.ToString("g")</dd>
-        <dt class="col-sm-3">Updated</dt>
-        <dd class="col-sm-9">@Model.UpdatedAt.ToString("g")</dd>
-    </dl>
-    <div class="mt-3">
-        <a asp-action="Edit" asp-route-id="@Model.EventId" class="btn btn-primary">Edit</a>
-        <a asp-action="Index" class="btn btn-secondary">Back</a>
+<link rel="stylesheet" href="~/css/dashboard.css" />
+
+<div class="events-page">
+    <div class="page-heading">
+        <div>
+            <h2>@Model.EventName</h2>
+            <p>Event overview and details.</p>
+        </div>
+        <a class="btn btn-primary" asp-action="Index">Back to Events</a>
+    </div>
+
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>Event Details</h4>
+        </div>
+
+        <div class="table-wrap">
+            <table class="event-table">
+                <tbody>
+                    <tr><th style="width:220px;">Name</th><td>@Model.EventName</td></tr>
+                    <tr><th>Type</th><td>@Model.EventType</td></tr>
+                    <tr><th>Location</th><td>@Model.Location</td></tr>
+                    <tr><th>Venue</th><td>@Model.Venue</td></tr>
+                    <tr><th>Date</th><td>@Model.EventDate.ToString("dd MMM yyyy")</td></tr>
+                    <tr><th>Distance</th><td>@Model.DistanceKm km</td></tr>
+                    <tr><th>Fee</th><td>R @Model.EventFee.ToString("0.00")</td></tr>
+                    <tr><th>Status</th><td>@Model.EventStatus</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

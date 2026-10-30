@@ -19,16 +19,17 @@ namespace Marathon.mvc.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // ---- 1. Auth gate first, before any data loading ----
             var token = HttpContext.Session.GetString("Token");
             if (string.IsNullOrWhiteSpace(token))
                 return RedirectToAction("Index", "Account");
 
             var role = HttpContext.Session.GetString("Role");
             if (string.IsNullOrWhiteSpace(role))
+            {
+                HttpContext.Session.Clear();
                 return RedirectToAction("Index", "Account");
+            }
 
-            // ---- 2. Load dashboard data ----
             var client = _httpClientFactory.CreateClient("ApiClient");
             var model = new DashboardDto();
 
@@ -62,13 +63,12 @@ namespace Marathon.mvc.Controllers
                 _logger.LogError(ex, "Error loading dashboard");
             }
 
-            
-            return role switch
+            return role.ToLowerInvariant() switch
             {
-                "Admin" => View("Admin", model),
-                "Participant" => View("Participant", model),
-                "User" => View("User", model),
-                _ => Forbid()
+                "admin" => View("Admin", model),
+                "participant" => View("Participant", model),
+                "user" => View("User", model),
+                _ => RedirectToAction("Index", "Account")
             };
         }
 

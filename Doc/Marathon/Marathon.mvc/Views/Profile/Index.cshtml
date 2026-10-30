@@ -1,0 +1,45 @@
+@model Marathon.mvc.Models.dto.UserDto
+@{
+    ViewData["Title"] = "Profile";
+    var displayName = string.IsNullOrWhiteSpace(Model.Username) ? "User" : Model.Username;
+}
+<link rel="stylesheet" href="~/css/dashboard.css" />
+
+<div class="events-page">
+    <div class="page-heading">
+        <div>
+            <h2>Profile</h2>
+            <p>Account details for @displayName.</p>
+        </div>
+    </div>
+
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>My Profile</h4>
+        </div>
+
+        @if (string.IsNullOrWhiteSpace(Model.Username) && string.IsNullOrWhiteSpace(Model.FirstName) && string.IsNullOrWhiteSpace(Model.LastName))
+        {
+            <div class="empty-state">
+                <h5>No profile found</h5>
+                <p>We could not find a matching user profile in the API response.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="event-table">
+                    <tbody>
+                        <tr><th style="width:220px;">Username</th><td>@Model.Username</td></tr>
+                        <tr><th>First Name</th><td>@Model.FirstName</td></tr>
+                        <tr><th>Last Name</th><td>@Model.LastName</td></tr>
+                        <tr><th>Phone</th><td>@Model.PhoneNumber</td></tr>
+                        <tr><th>Date of Birth</th><td>@Model.DateOfBirth.ToString("dd MMM yyyy")</td></tr>
+                        <tr><th>Created</th><td>@Model.CreatedAt.ToString("dd MMM yyyy")</td></tr>
+                        <tr><th>Last Login</th><td>@Model.LastLogin.ToString("dd MMM yyyy")</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
