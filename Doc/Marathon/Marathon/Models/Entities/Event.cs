@@ -15,11 +15,15 @@ namespace Marathon.Models
         public required float DistanceKm { get; set; }
         public required string EventType { get; set; }
         public required float EventFee { get; set; }
-        public required string Status { get; set; }
+        public required string EventStatus { get; set; }
         public required int CreatedBy { get; set; }
         public required DateTime CreatedAt { get; set; }
         public required DateTime UpdatedAt { get; set; }
+      
+        public string? ImageBlobName { get; set; }
 
         
+
+
     }
 }

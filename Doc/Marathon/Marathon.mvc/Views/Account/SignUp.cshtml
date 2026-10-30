@@ -1,0 +1,217 @@
+﻿@model Marathon.mvc.Models.dto.SignUpDTO
+@{
+    Layout = null;
+    ViewData["Title"] = "Create account";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create account – Marathon.mvc</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+</head>
+<body class="auth-body">
+    <div class="auth-shell">
+
+        <!-- ============ LEFT: Branding panel ============ -->
+        <aside class="auth-visual">
+            <div class="visual-glow glow-1"></div>
+            <div class="visual-glow glow-2"></div>
+
+            <div class="visual-brand">
+                <span class="brand-mark"><i class="fa fa-flag-checkered"></i></span>
+                <span class="brand-name">Marathon.mvc</span>
+            </div>
+
+            <div class="visual-copy">
+                <h1>Join the race.<br />Start your journey.</h1>
+                <p>Create an account to register for events, track your results, and never miss a starting gun.</p>
+
+                <ul class="visual-features">
+                    <li><i class="fa fa-check"></i> One-click event registration</li>
+                    <li><i class="fa fa-check"></i> Personal dashboards &amp; history</li>
+                    <li><i class="fa fa-check"></i> Instant result notifications</li>
+                </ul>
+            </div>
+
+            <p class="visual-footer">&copy; @DateTime.Now.Year Marathon.mvc — Built for race day.</p>
+        </aside>
+
+        <!-- ============ RIGHT: Sign-up form ============ -->
+        <main class="auth-form-side">
+            <div class="auth-card auth-card-wide">
+
+                <div class="auth-head">
+                    <a asp-controller="Account" asp-action="Index" class="back-link">
+                        <i class="fa fa-arrow-left"></i> Back to sign in
+                    </a>
+                    <h2>Create your account</h2>
+                    <p>It only takes a minute.</p>
+                </div>
+
+                <form asp-controller="Account" asp-action="SignUp" method="post" novalidate id="signupForm">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+                    <!-- Name row -->
+                    <div class="field-row-2">
+                        <div class="field">
+                            <label asp-for="FirstName"></label>
+                            <div class="input-wrap">
+                                <i class="fa fa-user-o"></i>
+                                <input asp-for="FirstName" placeholder="John" autofocus />
+                            </div>
+                            <span asp-validation-for="FirstName" class="field-error"></span>
+                        </div>
+                        <div class="field">
+                            <label asp-for="LastName"></label>
+                            <div class="input-wrap">
+                                <i class="fa fa-user-o"></i>
+                                <input asp-for="LastName" placeholder="Doe" />
+                            </div>
+                            <span asp-validation-for="LastName" class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="field">
+                        <label asp-for="Username"></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-at"></i>
+                            <input asp-for="Username" placeholder="runner42" autocomplete="username" />
+                        </div>
+                        <span asp-validation-for="Username" class="field-error"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="field">
+                        <label asp-for="Email"></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-envelope-o"></i>
+                            <input asp-for="Email" type="email" autocomplete="email" placeholder="you@example.com" />
+                        </div>
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+
+                    <!-- DOB + Phone -->
+                    <div class="field-row-2">
+                        <div class="field">
+                            <label asp-for="DateOfBirth"></label>
+                            <div class="input-wrap">
+                                <i class="fa fa-calendar-o"></i>
+                                <input asp-for="DateOfBirth" type="date" />
+                            </div>
+                            <span asp-validation-for="DateOfBirth" class="field-error"></span>
+                        </div>
+                        <div class="field">
+                            <label asp-for="PhoneNumber"></label>
+                            <div class="input-wrap">
+                                <i class="fa fa-phone"></i>
+                                <input asp-for="PhoneNumber" type="tel" placeholder="+27 82 123 4567" />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="field">
+                        <label asp-for="Password"></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-lock"></i>
+                            <input asp-for="Password" type="password" autocomplete="new-password"
+                                   placeholder="At least 6 characters" id="passwordInput" />
+                            <button type="button" id="togglePw1" class="pw-toggle" aria-label="Show password">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="pw-strength" id="pwStrength" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <span asp-validation-for="Password" class="field-error"></span>
+                    </div>
+
+                    <!-- Confirm password -->
+                    <div class="field">
+                        <label asp-for="ConfirmPassword"></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-lock"></i>
+                            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password"
+                                   placeholder="Repeat password" id="confirmInput" />
+                            <button type="button" id="togglePw2" class="pw-toggle" aria-label="Show password">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                    </div>
+
+                    <label class="checkbox checkbox-terms">
+                        <input type="checkbox" id="agreeTerms" required />
+                        <span>I agree to the <a href="#" class="link-muted">Terms</a> and <a href="#" class="link-muted">Privacy Policy</a></span>
+                    </label>
+
+                    <button type="submit" class="btn-submit" id="signupBtn" disabled>
+                        Create account <i class="fa fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <p class="auth-alt">
+                    Already have an account?
+                    <a asp-controller="Account" asp-action="Index">Sign in</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            /* ----- Show / hide password toggles ----- */
+            function wireToggle(btnId, inputId) {
+                var btn = document.getElementById(btnId);
+                var input = document.getElementById(inputId);
+                if (!btn || !input) return;
+                btn.addEventListener('click', function () {
+                    var show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    btn.querySelector('i').className = show ? 'fa fa-eye-slash' : 'fa fa-eye';
+                    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                });
+            }
+            wireToggle('togglePw1', 'passwordInput');
+            wireToggle('togglePw2', 'confirmInput');
+
+            /* ----- Password strength meter ----- */
+            var pw = document.getElementById('passwordInput');
+            var bars = document.querySelectorAll('#pwStrength span');
+            if (pw && bars.length === 4) {
+                pw.addEventListener('input', function () {
+                    var v = pw.value;
+                    var score = 0;
+                    if (v.length >= 6) score++;
+                    if (v.length >= 10) score++;
+                    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+                    if (/\d/.test(v)) score++;
+                    if (/[^A-Za-z0-9]/.test(v) && score < 4) score++;
+
+                    bars.forEach(function (b, i) {
+                        b.classList.toggle('on', i < score);
+                    });
+                    var container = document.getElementById('pwStrength');
+                    container.dataset.score = score;
+                });
+            }
+
+            /* ----- Enable submit only when terms are checked ----- */
+            var terms = document.getElementById('agreeTerms');
+            var btn = document.getElementById('signupBtn');
+            if (terms && btn) {
+                terms.addEventListener('change', function () {
+                    btn.disabled = !terms.checked;
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

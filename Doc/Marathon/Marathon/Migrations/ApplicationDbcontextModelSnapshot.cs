@@ -122,8 +122,15 @@ namespace Marathon.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("EventStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EventType")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageBlobName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location")
@@ -132,10 +139,6 @@ namespace Marathon.Migrations
 
                     b.Property<DateTime>("Now")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -190,6 +193,9 @@ namespace Marathon.Migrations
                     b.Property<Guid>("ResultId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ImageBlobName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("ParticipantEventId")
                         .HasColumnType("uniqueidentifier");
@@ -304,6 +310,10 @@ namespace Marathon.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserAccountName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

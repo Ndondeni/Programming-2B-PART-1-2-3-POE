@@ -1,0 +1,145 @@
+﻿@model Marathon.mvc.Models.dto.DashboardDto
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+@if (TempData["Error"] is string err)
+{
+    <div class="alert alert-danger">@err</div>
+}
+
+@* ---- KPI cards ---- *@
+<partial name="_AdminStats" model="Model" />
+
+@* ---- Tables ---- *@
+<div class="row g-3 mt-1">
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold d-flex justify-content-between">
+                <span>Upcoming Events</span>
+                <a asp-controller="Events" asp-action="Index" class="small">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Event</th><th>Date</th><th>Location</th><th>Fee</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.UpcomingEvents.Count == 0)
+                        {
+                            <tr><td colspan="4" class="text-muted text-center py-3">No upcoming events.</td></tr>
+                        }
+                        @foreach (var e in Model.UpcomingEvents)
+                        {
+                            <tr>
+                                <td>@e.EventName</td>
+                                <td>@e.EventDate.ToString("dd MMM yyyy")</td>
+                                <td>@e.Location</td>
+                                <td>@e.EventFee.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold d-flex justify-content-between">
+                <span>Recent Enrolments</span>
+                <a asp-controller="Enrolments" asp-action="Index" class="small">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Date</th><th>Status</th><th>Payment</th><th>Amount</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentEnrolments.Count == 0)
+                        {
+                            <tr><td colspan="4" class="text-muted text-center py-3">No enrolments yet.</td></tr>
+                        }
+                        @foreach (var en in Model.RecentEnrolments)
+                        {
+                            <tr>
+                                <td>@en.enrolment_date.ToString("dd MMM yyyy")</td>
+                                <td>@en.enrolment_status</td>
+                                <td>@en.payment_status</td>
+                                <td>@en.amount_paid.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold d-flex justify-content-between">
+                <span>Recent Payments</span>
+                <a asp-controller="Payments" asp-action="Index" class="small">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Ref</th><th>Method</th><th>Amount</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Payments.Count == 0)
+                        {
+                            <tr><td colspan="4" class="text-muted text-center py-3">No payments yet.</td></tr>
+                        }
+                        @foreach (var p in Model.Payments)
+                        {
+                            <tr>
+                                <td>@(p.Reference ?? "—")</td>
+                                <td>@p.PaymentMethod</td>
+                                <td>@p.Amount.ToString("C")</td>
+                                <td>
+                                    <span class="badge bg-@(p.PaymentStatus == "Paid" ? "success" : "secondary")">
+                                        @p.PaymentStatus
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold d-flex justify-content-between">
+                <span>Latest Results</span>
+                <a asp-controller="Results" asp-action="Index" class="small">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Winner</th><th>Position</th><th>Time</th><th>Prize</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentResults.Count == 0)
+                        {
+                            <tr><td colspan="4" class="text-muted text-center py-3">No results yet.</td></tr>
+                        }
+                        @foreach (var r in Model.RecentResults)
+                        {
+                            <tr>
+                                <td>@r.Winner</td>
+                                <td>@r.finish_position</td>
+                                <td>@r.finish_time_seconds</td>
+                                <td>@r.prize_money.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,32 @@
+﻿@model Marathon.mvc.Models.dto.EventDto
+@{
+    ViewData["Title"] = "Event Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h3>@Model.EventName</h3>
+<div class="card p-4 shadow-sm">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Date</dt>
+        <dd class="col-sm-9">@Model.EventDate.ToString("dd MMM yyyy")</dd>
+        <dt class="col-sm-3">Location</dt>
+        <dd class="col-sm-9">@Model.Location</dd>
+        <dt class="col-sm-3">Venue</dt>
+        <dd class="col-sm-9">@Model.Venue</dd>
+        <dt class="col-sm-3">Type</dt>
+        <dd class="col-sm-9">@Model.EventType</dd>
+        <dt class="col-sm-3">Distance</dt>
+        <dd class="col-sm-9">@Model.DistanceKm km</dd>
+        <dt class="col-sm-3">Fee</dt>
+        <dd class="col-sm-9">@Model.EventFee.ToString("C")</dd>
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9"><span class="badge bg-info">@Model.EventStatus</span></dd>
+        <dt class="col-sm-3">Created</dt>
+        <dd class="col-sm-9">@Model.CreatedAt.ToString("g")</dd>
+        <dt class="col-sm-3">Updated</dt>
+        <dd class="col-sm-9">@Model.UpdatedAt.ToString("g")</dd>
+    </dl>
+    <div class="mt-3">
+        <a asp-action="Edit" asp-route-id="@Model.EventId" class="btn btn-primary">Edit</a>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </div>
+</div>

@@ -18,6 +18,8 @@ namespace Marathon.Models
         public required string overall_rank { get; set; }
         public required decimal prize_money { get; set; }
         public required string category_rank { get; set; }
-        
+
+        public string? ImageBlobName { get; set; }
+
     }
 }

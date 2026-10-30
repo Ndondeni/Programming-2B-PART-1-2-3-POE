@@ -4,11 +4,13 @@
     "Projects": [
       {
         "Path": "Marathon\\Marathon.csproj",
-        "Action": "Start"
+        "Action": "Start",
+        "DebugTarget": "https"
       },
       {
         "Path": "Marathon.mvc\\Marathon.mvc.csproj",
-        "Action": "Start"
+        "Action": "Start",
+        "DebugTarget": "https"
       }
     ]
   }

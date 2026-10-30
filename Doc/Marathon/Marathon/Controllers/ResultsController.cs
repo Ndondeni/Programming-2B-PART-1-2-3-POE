@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Marathon.Data;
 using Marathon.Models;
 using Marathon.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Marathon.Controllers
 {
@@ -13,10 +15,12 @@ namespace Marathon.Controllers
     public class ResultsController : ControllerBase
     {
         private readonly ApplicationDbcontext dbcontext;
+        private readonly BlobServiceClient _blobService;
 
-        public ResultsController(ApplicationDbcontext dbcontext)
+        public ResultsController(ApplicationDbcontext dbcontext, BlobServiceClient blobService)
         {
             this.dbcontext = dbcontext;
+            _blobService = blobService;
         }
 
         // ─────────────────────────────────────────────
@@ -83,10 +87,54 @@ namespace Marathon.Controllers
             });
         }
 
-        // ─────────────────────────────────────────────
-        // POST: api/results
-        // Admin / Organiser only
-        // ─────────────────────────────────────────────
+        [HttpPost("{raceId:int}/image")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UploadEventImage(int raceId, IFormFile file)
+        {
+            // 1. Find the event (using events, not courses)
+            var raceEvent = await dbcontext.results.FindAsync(raceId);
+            if (raceEvent == null)
+                return NotFound("Event not found");
+
+            // 2. Validate the file
+            if (file == null || file.Length == 0)
+                return BadRequest("Select an image");
+
+            if (file.Length > 5 * 1024 * 1024)
+                return BadRequest("Maximum size is 5 MB");
+
+            var allowedContentTypes = new[] { "image/jpeg", "image/png" };
+            if (!allowedContentTypes.Contains(file.ContentType))
+                return BadRequest("JPEG or PNG only");
+
+            // 3. Upload to Azure Blob Storage
+            var container = _blobService.GetBlobContainerClient("event-images");
+            await container.CreateIfNotExistsAsync();
+
+            var extension = Path.GetExtension(file.FileName);
+            var blobName = $"{Guid.NewGuid():N}{extension}";
+            var blob = container.GetBlobClient(blobName);
+
+            await using var stream = file.OpenReadStream();
+            await blob.UploadAsync(stream, new BlobUploadOptions
+            {
+                HttpHeaders = new BlobHttpHeaders
+                {
+                    ContentType = file.ContentType
+                }
+            });
+
+            // 4. Link back to SQL Server and save
+            raceEvent.ImageBlobName = blobName;
+            await dbcontext.SaveChangesAsync();
+
+            // 5. Return success (Fixed: this was outside the method in your snippet)
+            return Ok(new
+            {
+                RaceId = raceEvent.ResultId,
+                BlobName = blobName
+            });
+        }
         [HttpPost]
         [Authorize(Roles = "Admin,Organiser")]
         public async Task<IActionResult> CreateResult([FromBody] CreateResultDTO dto)

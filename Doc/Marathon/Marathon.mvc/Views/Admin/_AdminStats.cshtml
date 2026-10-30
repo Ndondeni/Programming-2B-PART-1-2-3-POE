@@ -1,0 +1,24 @@
+﻿@model Marathon.mvc.Models.dto.DashboardDto
+
+<div class="row g-3">
+    @foreach (var (label, value, icon) in new[]
+        {
+        ("Users",      Model.UserCount.ToString(),         "bxs-group"),
+        ("Events",     Model.EventCount.ToString(),        "bxs-calendar-event"),
+        ("Categories", Model.CategoryCount.ToString(),     "bxs-category"),
+        ("Enrolments", Model.EnrolmentCount.ToString(),    "bxs-purchase-tag"),
+        ("Results",    Model.ResultCount.ToString(),       "bxs-trophy"),
+        ("Revenue",    Model.TotalRevenue.ToString("C"),   "bxs-wallet")
+        })
+    {
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label">@label</span>
+                    <i class="bx @icon bx-sm"></i>
+                </div>
+                <div class="kpi-value">@value</div>
+            </div>
+        </div>
+    }
+</div>

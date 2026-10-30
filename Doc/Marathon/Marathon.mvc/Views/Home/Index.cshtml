@@ -2,140 +2,176 @@
 
 @{
     ViewData["Title"] = "Dashboard";
-}
 
-<link rel="stylesheet"
-      href="~/css/dashboard.css"
-      asp-append-version="true" />
-
-<h1 class="display-6 mb-4">Race Day Dashboard</h1>
-
-<div class="row g-3 mb-4">
-    <div class="col">
-        <div class="card p-3 text-center">
-            <h3>@Model.UserCount</h3>
-            <small>Users</small>
-        </div>
-    </div>
-
-    <div class="col">
-        <div class="card p-3 text-center">
-            <h3>@Model.EventCount</h3>
-            <small>Events</small>
-        </div>
-    </div>
-
-    <div class="col">
-        <div class="card p-3 text-center">
-            <h3>@Model.CategoryCount</h3>
-            <small>Categories</small>
-        </div>
-    </div>
-
-    <div class="col">
-        <div class="card p-3 text-center">
-            <h3>@Model.EnrolmentCount</h3>
-            <small>Enrolments</small>
-        </div>
-    </div>
-
-    <div class="col">
-        <div class="card p-3 text-center">
-            <h3>@Model.ResultCount</h3>
-            <small>Results</small>
-        </div>
-    </div>
-</div>
-
-<div class="card p-4 mb-4">
-    <h2 class="h5">Total Revenue</h2>
-    <h3>R @Model.TotalRevenue.ToString("N2")</h3>
-</div>
-
-<h2 class="h5 mt-4">Upcoming Events</h2>
-
-@if (Model.UpcomingEvents.Count == 0)
-{
-    <div class="alert alert-info">No events available.</div>
-}
-else
-{
-    <div class="table-responsive mb-4">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Event</th>
-                    <th>Location</th>
-                    <th>Venue</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var e in Model.UpcomingEvents)
-                {
-                    <tr>
-                        <td>@e.EventName</td>
-                        <td>@e.Location</td>
-                        <td>@e.Venue</td>
-                        <td>@e.EventDate.ToString("dd MMM yyyy")</td>
-                        <td>@e.Status</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
-
-<h2 class="h5 mt-4">Categories</h2>
-
-<div class="card-container mb-4">
-    @foreach (var c in Model.Categories)
+    string StatusClass(string status)
     {
-        <div class="card">
-            <h3 class="card-title">@c.CategoryName</h3>
-            <p>Ages: @c.MinAge - @c.MaxAge</p>
-            <p>Gender: @c.GenderRestrictions</p>
-            <p>Maximum participants: @c.MaxParticipants</p>
-        </div>
+        if (string.IsNullOrWhiteSpace(status)) return "status-ended";
+        var s = status.ToLower();
+        if (s.Contains("upcoming") || s.Contains("scheduled") || s.Contains("open")) return "status-upcoming";
+        if (s.Contains("active") || s.Contains("paid") || s.Contains("complete") || s.Contains("success")) return "status-active";
+        return "status-ended";
     }
-</div>
-
-<h2 class="h5 mt-4">Recent Enrolments</h2>
-
-@if (Model.RecentEnrolments.Count == 0)
-{
-    <div class="alert alert-info">No enrolments available.</div>
 }
-else
-{
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>Event ID</th>
-                    <th>Category ID</th>
-                    <th>Enrolment Date</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Amount Paid</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var e in Model.RecentEnrolments)
-                {
-                    <tr>
-                        <td>@e.UserId</td>
-                        <td>@e.EventId</td>
-                        <td>@e.CategoryId</td>
-                        <td>@e.enrolment_date.ToString("dd MMM yyyy")</td>
-                        <td>@e.enrolment_status</td>
-                        <td>@e.payment_status</td>
-                        <td>R @e.amount_paid.ToString("N2")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="events-page">
+
+    <!-- Page heading -->
+    <div class="page-heading">
+        <div>
+            <h2>Race Day Dashboard</h2>
+            <p>Overview of users, events, categories, enrolments, and revenue.</p>
+        </div>
     </div>
-}
+
+    <!-- Stat cards -->
+    <div class="event-stats">
+        <div class="stat-card">
+            <span>Users</span>
+            <h3>@Model.UserCount</h3>
+        </div>
+        <div class="stat-card">
+            <span>Events</span>
+            <h3>@Model.EventCount</h3>
+        </div>
+        <div class="stat-card">
+            <span>Categories</span>
+            <h3>@Model.CategoryCount</h3>
+        </div>
+        <div class="stat-card">
+            <span>Enrolments</span>
+            <h3>@Model.EnrolmentCount</h3>
+        </div>
+        <div class="stat-card">
+            <span>Results</span>
+            <h3>@Model.ResultCount</h3>
+        </div>
+        <div class="stat-card featured">
+            <span>Total Revenue</span>
+            <h3>R @Model.TotalRevenue.ToString("N2")</h3>
+        </div>
+    </div>
+
+    <!-- Upcoming events -->
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>Upcoming Events</h4>
+            <span class="count-badge">@Model.UpcomingEvents.Count</span>
+        </div>
+
+        @if (Model.UpcomingEvents.Count == 0)
+        {
+            <div class="empty-state">
+                <h5>No events available</h5>
+                <p>Upcoming events will appear here once scheduled.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Location</th>
+                            <th>Venue</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model.UpcomingEvents)
+                        {
+                            <tr>
+                                <td class="event-name">@e.EventName</td>
+                                <td>@e.Location</td>
+                                <td>@e.Venue</td>
+                                <td>@e.EventDate.ToString("dd MMM yyyy")</td>
+                                <td><span class="status @StatusClass(e.EventStatus)">@e.EventStatus</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Categories -->
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>Categories</h4>
+            <span class="count-badge">@Model.Categories.Count</span>
+        </div>
+
+        @if (Model.Categories.Count == 0)
+        {
+            <div class="empty-state">
+                <h5>No categories available</h5>
+                <p>Race categories will appear here once created.</p>
+            </div>
+        }
+        else
+        {
+            <div class="category-grid">
+                @foreach (var c in Model.Categories)
+                {
+                    <div class="category-card">
+                        <h5>@c.CategoryName</h5>
+                        <p><strong>Ages:</strong> @c.MinAge – @c.MaxAge</p>
+                        <p><strong>Gender:</strong> @c.GenderRestrictions</p>
+                        <p><strong>Max participants:</strong> @c.MaxParticipants</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Recent enrolments -->
+    <div class="event-section">
+        <div class="section-heading">
+            <h4>Recent Enrolments</h4>
+            <span class="count-badge">@Model.RecentEnrolments.Count</span>
+        </div>
+
+        @if (Model.RecentEnrolments.Count == 0)
+        {
+            <div class="empty-state">
+                <h5>No enrolments available</h5>
+                <p>Recent enrolment activity will appear here.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Event ID</th>
+                            <th>Category ID</th>
+                            <th>Enrolment Date</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Amount Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model.RecentEnrolments)
+                        {
+                            <tr>
+                                <td>@e.UserId</td>
+                                <td>@e.EventId</td>
+                                <td>@e.CategoryId</td>
+                                <td>@e.enrolment_date.ToString("dd MMM yyyy")</td>
+                                <td><span class="status @StatusClass(e.enrolment_status)">@e.enrolment_status</span></td>
+                                <td><span class="status @StatusClass(e.payment_status)">@e.payment_status</span></td>
+                                <td>R @e.amount_paid.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

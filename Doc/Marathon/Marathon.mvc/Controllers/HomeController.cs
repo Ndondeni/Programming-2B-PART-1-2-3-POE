@@ -1,8 +1,8 @@
+using System.Diagnostics;
+using System.Net.Http.Json;
 using Marathon.mvc.Models;
 using Marathon.mvc.Models.dto;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Net.Http.Json;
 
 namespace Marathon.mvc.Controllers
 {
@@ -11,9 +11,7 @@ namespace Marathon.mvc.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public HomeController(
-            ILogger<HomeController> logger,
-            IHttpClientFactory httpClientFactory)
+        public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
@@ -21,45 +19,42 @@ namespace Marathon.mvc.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // ---- 1. Auth gate first, before any data loading ----
+            var token = HttpContext.Session.GetString("Token");
+            if (string.IsNullOrWhiteSpace(token))
+                return RedirectToAction("Index", "Account");
+
+            var role = HttpContext.Session.GetString("Role");
+            if (string.IsNullOrWhiteSpace(role))
+                return RedirectToAction("Index", "Account");
+
+            // ---- 2. Load dashboard data ----
             var client = _httpClientFactory.CreateClient("ApiClient");
             var model = new DashboardDto();
 
             try
             {
-                // Dashboard counts
-                model.UserCount = await CountAsync(client, "api/User");
-                model.EventCount = await CountAsync(client, "api/Event");
-                model.CategoryCount = await CountAsync(client, "api/Category");
-                model.EnrolmentCount = await CountAsync(client, "api/Enrolment");
-                model.ResultCount = await CountAsync(client, "api/Result");
+                var users = await GetListAsync<UserDto>(client, "api/User") ?? new();
+                var events = await GetListAsync<EventDto>(client, "api/Events") ?? new();
+                var categories = await GetListAsync<CategoryDto>(client, "api/Category") ?? new();
+                var enrolments = await GetListAsync<EnrolmentDto>(client, "api/Enrolment") ?? new();
+                var results = await GetListAsync<ResultDto>(client, "api/Results") ?? new();
+                var payments = await GetListAsync<PaymentDto>(client, "api/Payment") ?? new();
 
-                // Dashboard lists
-                model.UpcomingEvents =
-                    await GetListAsync<EventDto>(client, "api/Event")
-                    ?? new List<EventDto>();
+                model.UserCount = users.Count;
+                model.EventCount = events.Count;
+                model.CategoryCount = categories.Count;
+                model.EnrolmentCount = enrolments.Count;
+                model.ResultCount = results.Count;
 
-                model.Categories =
-                    await GetListAsync<CategoryDto>(client, "api/Category")
-                    ?? new List<CategoryDto>();
+                model.UpcomingEvents = events;
+                model.Categories = categories;
+                model.RecentEnrolments = enrolments;
+                model.RecentResults = results;
+                model.Payments = payments;
 
-                model.RecentEnrolments =
-                    await GetListAsync<EnrolmentDto>(client, "api/Enrolment")
-                    ?? new List<EnrolmentDto>();
-
-                model.RecentResults =
-                    await GetListAsync<ResultDto>(client, "api/Result")
-                    ?? new List<ResultDto>();
-
-                model.Payments =
-                    await GetListAsync<PaymentDto>(client, "api/Payment")
-                    ?? new List<PaymentDto>();
-
-                // Calculate revenue from paid payments
-                model.TotalRevenue = model.Payments
-                    .Where(p => string.Equals(
-                        p.PaymentStatus,
-                        "Paid",
-                        StringComparison.OrdinalIgnoreCase))
+                model.TotalRevenue = payments
+                    .Where(p => string.Equals(p.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase))
                     .Sum(p => p.Amount);
             }
             catch (Exception ex)
@@ -67,12 +62,17 @@ namespace Marathon.mvc.Controllers
                 _logger.LogError(ex, "Error loading dashboard");
             }
 
-            return View(model);
+            // ---- 3. Route to the role-specific view ----
+            return role switch
+            {
+                "Admin" => View("Admin", model),
+                "Participant" => View("Participant", model),
+                "User" => View("User", model),
+                _ => Forbid()
+            };
         }
 
-        private async Task<List<T>?> GetListAsync<T>(
-            HttpClient client,
-            string path)
+        private async Task<List<T>?> GetListAsync<T>(HttpClient client, string path)
         {
             try
             {
@@ -80,53 +80,15 @@ namespace Marathon.mvc.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(
-                    ex,
-                    "Could not retrieve data from {Path}",
-                    path);
-
+                _logger.LogWarning(ex, "Could not retrieve data from {Path}", path);
                 return null;
             }
         }
 
-        private async Task<int> CountAsync(
-            HttpClient client,
-            string path)
-        {
-            try
-            {
-                var items =
-                    await client.GetFromJsonAsync<List<object>>(path);
+        public IActionResult Privacy() => View();
 
-                return items?.Count ?? 0;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(
-                    ex,
-                    "Could not retrieve count from {Path}",
-                    path);
-
-                return 0;
-            }
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(
-            Duration = 0,
-            Location = ResponseCacheLocation.None,
-            NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel
-            {
-                RequestId = Activity.Current?.Id
-                    ?? HttpContext.TraceIdentifier
-            });
-        }
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error() =>
+            View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }

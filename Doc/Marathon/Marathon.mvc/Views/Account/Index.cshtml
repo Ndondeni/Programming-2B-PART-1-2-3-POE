@@ -1,0 +1,27 @@
+﻿@model Marathon.mvc.Models.dto.LoginDTO
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form asp-controller="Account" asp-action="Index" method="post" class="form">
+    @Html.AntiForgeryToken()
+    <p class="form-title">Sign in to your account</p>
+    <div class="form-group">
+        @Html.AntiForgeryToken()
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="input-container" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" type="password" class="input-container" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+    <p class="signup-link">
+        No account?
+        <a asp-controller="Account" asp-action="SignUp">Sign up</a>
+    </p>
+    </form>

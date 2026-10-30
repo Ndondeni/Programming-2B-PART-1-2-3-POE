@@ -6,9 +6,11 @@ using Microsoft.IdentityModel.Tokens;
 using Marathon.Data;
 using Marathon.Models;
 using Marathon.Models.DTOs;
+using Marathon.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace Marathon.Controllers
 {
@@ -30,9 +32,37 @@ namespace Marathon.Controllers
             _hasher = hasher;
         }
 
-        // ------------------------------------------------------------
-        // POST: api/auth/register
-        // ------------------------------------------------------------
+
+        [HttpPost]
+        public IActionResult AddNewUser(Add_New_UserDTO addDTO)
+        {
+            var user = new User
+            {
+                Username = addDTO.Username,
+                FirstName = addDTO.FirstName,
+                LastName = addDTO.LastName,
+                DateOfBirth = addDTO.DateOfBirth,
+                PhoneNumber = addDTO.PhoneNumber,
+
+                // server-controlled:
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = DateTime.UtcNow,
+                IsActive = true,
+            };
+            var userAccount = new UserAccount
+            {
+                Email = addDTO.Username, 
+                PasswordHash = _hasher.HashPassword(null, "defaultPassword"), 
+                Role = "User", 
+                UserAccountName = addDTO.FirstName + " " + addDTO.LastName
+            };
+
+            _db.users.Add(user);
+            _db.accounts.Add(userAccount);
+            _db.SaveChanges();
+            return Ok("User was added successfully");
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDTO regDto)
         {
@@ -43,7 +73,8 @@ namespace Marathon.Controllers
             {
                 Email = regDto.Email,
                 PasswordHash = null, // will be set below
-                Role = "User"   // ignore regDto.Role — prevent self-promotion 
+                Role = "User",   // ignore regDto.Role — prevent self-promotion 
+                UserAccountName = regDto.UserAccountName
                 //Roles — Paticipant, Event Manager or Admin
             };
 
@@ -60,9 +91,24 @@ namespace Marathon.Controllers
             });
         }
 
-        // ------------------------------------------------------------
-        // POST: api/auth/login
-        // ------------------------------------------------------------
+        [HttpPost("loginUser")]
+        public async Task<IActionResult> LoginUser(LoginDTO logDto)
+        {
+            var user = await _db.accounts.FirstOrDefaultAsync(u => u.Email == logDto.Email);
+            if (user == null) return Unauthorized("Invalid email or password");
+
+            var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, logDto.Password);
+            if (result == PasswordVerificationResult.Failed)
+                return Unauthorized("Invalid email or password");
+
+            var token = new JwtServives(_config).GenerateToken(user);
+
+            return Ok(new
+            {
+                token,
+                user = new { user.UserAccountId, user.Email, user.Role }
+            });
+        }
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDTO logDto)
         {
@@ -77,7 +123,7 @@ namespace Marathon.Controllers
             if (result == PasswordVerificationResult.Failed)
                 return Unauthorized("Invalid email or password");
 
-            var token = GenerateJwtToken(user);
+            var token = new JwtServives(_config).GenerateToken(user);
 
             return Ok(new
             {
@@ -91,55 +137,51 @@ namespace Marathon.Controllers
             });
         }
 
+       
         // ------------------------------------------------------------
         // GET: api/auth/me   (requires JWT)
         // ------------------------------------------------------------
-        [Authorize]
+        [Authorize(Roles = "User/Participant")]
         [HttpGet("me")]
-        public async Task<IActionResult> Me()
+        public async Task<IActionResult> GetMyProfile() 
         {
-            var raw = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(raw, out var userId))
-                return Unauthorized();
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var user = await _db.accounts.FirstOrDefaultAsync(u => u.Email == email);
 
-            var user = await _db.accounts.FindAsync(userId);
-            if (user == null) return NotFound();
 
-            return Ok(new
-            {
-                user.UserAccountId,
-                user.Email,
-                user.Role,
-                IsAdmin = User.IsInRole("Admin")
-            });
+            if (user == null)
+                return NotFound("Student profile not found");
+
+
+            var profile = await _db.accounts
+            .Where(r => r.UserAccountId == user.UserAccountId)
+               .Include(r => r.Role)
+               .Select(r => new
+               {
+                r.UserAccountId,
+                r.Email,
+                r.Role
+            }).FirstOrDefaultAsync();
+
+            return Ok(profile);
         }
-
-        // ------------------------------------------------------------
-        // Helper — private so Swagger ignores it
-        // ------------------------------------------------------------
-        private string GenerateJwtToken(UserAccount user)
+        [Authorize(Roles = "Admin,Lecturer")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllRegistration()
         {
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new List<Claim>
+            var users = await _db.accounts
+            .Include(r => r.UserAccountId)
+            .Include(r => r.Email)
+            .Select(r => new
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserAccountId.ToString()),
-                new Claim(ClaimTypes.Email,          user.Email),
-                new Claim(ClaimTypes.Role,           user.Role)
-            };
+                r.UserAccountId,
+                r.Email,
+                r.Role,
+                r.UserAccountName
+            })
+            .ToListAsync();
 
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(8),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return Ok(users);
         }
     }
 }

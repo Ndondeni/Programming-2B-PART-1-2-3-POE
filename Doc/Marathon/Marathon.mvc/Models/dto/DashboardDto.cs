@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,17 +7,15 @@ namespace Marathon.mvc.Models.dto
 {
     public class DashboardDto
     {
-        // Dashboard counts
         public int UserCount { get; set; }
         public int EventCount { get; set; }
         public int CategoryCount { get; set; }
         public int EnrolmentCount { get; set; }
         public int ResultCount { get; set; }
 
-        // Financial summary
         public decimal TotalRevenue { get; set; }
 
-        // Dashboard lists
+        public List<UserDto> Users { get; set; } = new();
         public List<EventDto> UpcomingEvents { get; set; } = new();
         public List<CategoryDto> Categories { get; set; } = new();
         public List<EnrolmentDto> RecentEnrolments { get; set; } = new();
@@ -26,55 +23,74 @@ namespace Marathon.mvc.Models.dto
         public List<PaymentDto> Payments { get; set; } = new();
     }
 
+    public class UserDto
+    {
+        public Guid Id { get; set; }
+        public string Username { get; set; } = "";
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public DateOnly DateOfBirth { get; set; }
+        public string PhoneNumber { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastLogin { get; set; }
+        public bool IsActive { get; set; }
+    }
+
     public class EventDto
     {
-        public required string EventName { get; set; }
-        public required DateOnly EventDate { get; set; }
-        public required DateTime Now { get; set; }
-        public required string Location { get; set; }
-        public required string Venue { get; set; }
-        public required float DistanceKm { get; set; }
-        public required string EventType { get; set; }
-        public required float EventFee { get; set; }
-        public required string Status { get; set; }
-        public required int CreatedBy { get; set; }
-        public required DateTime CreatedAt { get; set; }
-        public required DateTime UpdatedAt { get; set; }
+        public Guid EventId { get; set; }
+        public string EventName { get; set; } = "";
+        public DateOnly EventDate { get; set; }
+        public DateTime Now { get; set; }
+        public string Location { get; set; } = "";
+        public string Venue { get; set; } = "";
+        public float DistanceKm { get; set; }
+        public string EventType { get; set; } = "";
+        public float EventFee { get; set; }
+        public string EventStatus { get; set; } = "Draft";
+        public int CreatedBy { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     public class CategoryDto
     {
+        public Guid Id { get; set; }
+
         [ForeignKey("Event")]
         public Guid EventId { get; set; }
 
-        public required string CategoryName { get; set; }
-        public required int MinAge { get; set; }
-        public required int MaxAge { get; set; }
-        public required string GenderRestrictions { get; set; }
-        public required int MaxParticipants { get; set; }
-        public required string CreatedBy { get; set; }
-        public required DateTime CreatedAt { get; set; }
+        public string CategoryName { get; set; } = "";
+        public int MinAge { get; set; }
+        public int MaxAge { get; set; }
+        public string GenderRestrictions { get; set; } = "None";
+        public int MaxParticipants { get; set; }
+        public string CreatedBy { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
     }
 
     public class EnrolmentDto
     {
-        public required Guid UserId { get; set; }
+        public Guid Id { get; set; }
+
+        public Guid UserId { get; set; }
 
         [ForeignKey("Event")]
-        public required Guid EventId { get; set; }
+        public Guid EventId { get; set; }
 
         [ForeignKey("Category")]
-        public required Guid CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
 
-        public required DateOnly enrolment_date { get; set; }
-        public required string enrolment_status { get; set; }
-        public required string payment_status { get; set; }
-        public required decimal amount_paid { get; set; }
-        public required DateOnly paid_date { get; set; }
+        public DateOnly enrolment_date { get; set; }
+        public string enrolment_status { get; set; } = "Pending";
+        public string payment_status { get; set; } = "Unpaid";
+        public decimal amount_paid { get; set; }
+        public DateOnly paid_date { get; set; }
     }
 
     public class PaymentDto
     {
+        public Guid Id { get; set; }
         public int EnrolmentId { get; set; }
         public decimal Amount { get; set; }
         public string PaymentMethod { get; set; } = "";
@@ -88,15 +104,15 @@ namespace Marathon.mvc.Models.dto
         public Guid ResultId { get; set; } = Guid.NewGuid();
 
         [ForeignKey("ParticipantEventId")]
-        public required Guid ParticipantEventId { get; set; }
+        public Guid ParticipantEventId { get; set; }
 
-        public required string Winner { get; set; }
-        public required string finish_position { get; set; }
-        public required string finish_time_seconds { get; set; }
-        public required string pace_pace_km { get; set; }
-        public required string overall_rank { get; set; }
-        public required decimal prize_money { get; set; }
-        public required string category_rank { get; set; }
+        public string Winner { get; set; } = "";
+        public string finish_position { get; set; } = "";
+        public string finish_time_seconds { get; set; } = "";
+        public string pace_pace_km { get; set; } = "";
+        public string overall_rank { get; set; } = "";
+        public decimal prize_money { get; set; }
+        public string category_rank { get; set; } = "";
     }
 
     public class Participant_EventDto
@@ -105,18 +121,18 @@ namespace Marathon.mvc.Models.dto
         public Guid Participant_EventId { get; set; } = Guid.NewGuid();
 
         [ForeignKey("User")]
-        public required Guid UserId { get; set; }
+        public Guid UserId { get; set; }
 
         [ForeignKey("Event")]
-        public required Guid EventId { get; set; }
+        public Guid EventId { get; set; }
 
         [ForeignKey("Category")]
-        public required Guid CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
 
-        public required int bib_number { get; set; }
-        public required int fining_position { get; set; }
-        public required TimeOnly finish_time_seconds { get; set; }
-        public required string entry_status { get; set; }
-        public required DateOnly entered_at { get; set; }
+        public int bib_number { get; set; }
+        public int fining_position { get; set; }
+        public TimeOnly finish_time_seconds { get; set; }
+        public string entry_status { get; set; } = "Pending";
+        public DateOnly entered_at { get; set; }
     }
 }

@@ -9,5 +9,6 @@ namespace Marathon.Models
         public required string Email { get; set; }
         public required string PasswordHash { get; set; }
         public required string Role { get; set; } //Roles —Paticipant, Event Manager or Admin
+        public required string UserAccountName { get; set; }
     }
 }

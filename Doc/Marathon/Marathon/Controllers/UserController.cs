@@ -30,27 +30,7 @@ namespace Marathon.Controllers
             if (User == null) return NotFound();
             return Ok(User);
         }
-        [HttpPost]
-        public IActionResult AddNewUser(Add_New_UserDTO addDTO)
-        {
-            var user = new User
-            {
-                Username = addDTO.Username,
-                FirstName = addDTO.FirstName,
-                LastName = addDTO.LastName,
-                DateOfBirth = addDTO.DateOfBirth,
-                PhoneNumber = addDTO.PhoneNumber,
-
-                // server-controlled:
-                CreatedAt = DateTime.UtcNow,
-                LastLogin = DateTime.UtcNow,
-                IsActive = true,
-            };
-
-            dbcontext.users.Add(user);
-            dbcontext.SaveChanges();
-            return Ok("User was added successfully");
-        }
+       
         [HttpPut]
         [Route("{id:guid}")]
         public IActionResult EditUserPorfile(Guid id, Edit_Existing_UserDTO editDTO)

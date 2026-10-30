@@ -1,0 +1,133 @@
+﻿/* =========================================================
+   SignUp – extras on top of login.css
+   ========================================================= */
+
+/* Wider card so the extra fields breathe */
+.auth-card-wide {
+    max-width: 460px;
+}
+
+/* Back link above the heading */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue);
+    text-decoration: none;
+    margin-bottom: 18px;
+    transition: gap .18s ease;
+}
+
+    .back-link:hover {
+        gap: 10px;
+    }
+
+    .back-link i {
+        font-size: 11px;
+    }
+
+/* Two-column field row (First/Last, DOB/Phone) */
+.field-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+@media (max-width: 480px) {
+    .field-row-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Password strength meter */
+.pw-strength {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+}
+
+    .pw-strength span {
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        transition: background .2s ease;
+    }
+
+        .pw-strength span.on {
+            background: var(--blue);
+        }
+
+    /* Colour by score (set via JS dataset) */
+    .pw-strength[data-score="1"] span.on {
+        background: #dc2626;
+    }
+
+    .pw-strength[data-score="2"] span.on {
+        background: #fb8c00;
+    }
+
+    .pw-strength[data-score="3"] span.on {
+        background: #facc15;
+    }
+
+    .pw-strength[data-score="4"] span.on {
+        background: #17c993;
+    }
+
+    .pw-strength[data-score="5"] span.on {
+        background: #17c993;
+    }
+
+/* Terms checkbox row */
+.checkbox-terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 8px 0 22px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+    .checkbox-terms input {
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .checkbox-terms a {
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+        .checkbox-terms a:hover {
+            text-decoration: underline;
+        }
+
+/* Disabled submit button state */
+.btn-submit:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    filter: none;
+}
+
+    .btn-submit:disabled:hover {
+        transform: none;
+        box-shadow: none;
+        filter: none;
+    }
+
+/* Success banner (used on login page after signup) */
+.alert.alert-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
