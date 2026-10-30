@@ -62,7 +62,7 @@ namespace Marathon.mvc.Controllers
                 _logger.LogError(ex, "Error loading dashboard");
             }
 
-            // ---- 3. Route to the role-specific view ----
+            
             return role switch
             {
                 "Admin" => View("Admin", model),
