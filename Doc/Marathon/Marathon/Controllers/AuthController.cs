@@ -43,12 +43,14 @@ namespace Marathon.Controllers
                 LastName = addDTO.LastName,
                 DateOfBirth = addDTO.DateOfBirth,
                 PhoneNumber = addDTO.PhoneNumber,
-
+                
                 // server-controlled:
                 CreatedAt = DateTime.UtcNow,
                 LastLogin = DateTime.UtcNow,
                 IsActive = true,
+
             };
+            
             var userAccount = new UserAccount
             {
                 Email = addDTO.Username, 
@@ -91,7 +93,7 @@ namespace Marathon.Controllers
             });
         }
 
-        [HttpPost("loginUser")]
+        [HttpPost("login")]
         public async Task<IActionResult> LoginUser(LoginDTO logDto)
         {
             var user = await _db.accounts.FirstOrDefaultAsync(u => u.Email == logDto.Email);
@@ -109,38 +111,7 @@ namespace Marathon.Controllers
                 user = new { user.UserAccountId, user.Email, user.Role }
             });
         }
-        [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDTO logDto)
-        {
-            var user = await _db.accounts.FirstOrDefaultAsync(u => u.Email == logDto.Email);
-
-            if (user == null)
-                return Unauthorized("Invalid email or password");
-
-            var result = _hasher.VerifyHashedPassword(
-                user, user.PasswordHash, logDto.Password);
-
-            if (result == PasswordVerificationResult.Failed)
-                return Unauthorized("Invalid email or password");
-
-            var token = new JwtServives(_config).GenerateToken(user);
-
-            return Ok(new
-            {
-                token,
-                user = new
-                {
-                    user.UserAccountId,
-                    user.Email,
-                    user.Role
-                }
-            });
-        }
-
        
-        // ------------------------------------------------------------
-        // GET: api/auth/me   (requires JWT)
-        // ------------------------------------------------------------
         [Authorize(Roles = "User/Participant")]
         [HttpGet("me")]
         public async Task<IActionResult> GetMyProfile() 

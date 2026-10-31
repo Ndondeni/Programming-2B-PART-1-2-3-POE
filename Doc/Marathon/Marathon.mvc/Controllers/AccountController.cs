@@ -27,7 +27,7 @@ public class AccountController : Controller
 
         try
         {
-            var response = await client.PostAsJsonAsync("api/Account/loginUser",
+            var response = await client.PostAsJsonAsync("api/Auth/login",
                 new { Email = model.Email, Password = model.Password });
 
             if (!response.IsSuccessStatusCode)
@@ -90,7 +90,6 @@ public class AccountController : Controller
 
         var client = _http.CreateClient("ApiClient");
 
-        // Only send what the API's Add_New_UserDTO expects — ConfirmPassword stays client-side
         var payload = new
         {
             model.Username,
@@ -102,37 +101,35 @@ public class AccountController : Controller
             model.Password
         };
 
-        HttpResponseMessage response;
         try
         {
-            response = await client.PostAsJsonAsync("api/Account/AddNewUser", payload);
+            var response = await client.PostAsJsonAsync("/api/Auth/register", payload);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                    ModelState.AddModelError(string.Empty,
+                        string.IsNullOrWhiteSpace(error)
+                            ? "An account with this email already exists."
+                            : error);
+                else
+                    ModelState.AddModelError(string.Empty,
+                        string.IsNullOrWhiteSpace(error)
+                            ? "Registration failed. Please try again."
+                            : error);
+
+                return View(model);
+            }
+
+            TempData["SignUpSuccess"] = "Account created successfully. Please sign in.";
+            return RedirectToAction("Index","Home");
         }
         catch (HttpRequestException)
         {
             ModelState.AddModelError(string.Empty, "Registration service is unavailable. Try again.");
             return View(model);
         }
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                ModelState.AddModelError(string.Empty,
-                    string.IsNullOrWhiteSpace(error)
-                        ? "An account with this email already exists."
-                        : error);
-            else
-                ModelState.AddModelError(string.Empty,
-                    string.IsNullOrWhiteSpace(error)
-                        ? "Registration failed. Please try again."
-                        : error);
-
-            return View(model);
-        }
-
-        TempData["SignUpSuccess"] = "Account created successfully. Please sign in.";
-        return RedirectToAction(nameof(Index));
     }
-
 }

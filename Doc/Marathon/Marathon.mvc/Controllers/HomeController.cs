@@ -17,6 +17,7 @@ namespace Marathon.mvc.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var token = HttpContext.Session.GetString("Token");

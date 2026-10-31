@@ -20,13 +20,6 @@ builder.Services.AddHttpClient("ApiClient", (sp, client) =>
     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 });
 
-builder.Services.AddHttpClient<IAdminDashboardService, AdminDashboardService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-
-// ---- SESSION (this was missing) ----
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -36,7 +29,6 @@ builder.Services.AddSession(options =>
     options.Cookie.Name = ".Marathon.Session";
 });
 
-// ---- COOKIE AUTH (paths point at /Account now) ----
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {
@@ -50,10 +42,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
-// Expose concrete type � resolves to the SAME HttpClient-backed instance
-builder.Services.AddScoped<AdminDashboardService>(sp =>
-    (AdminDashboardService)sp.GetRequiredService<IAdminDashboardService>());
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -65,15 +53,14 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// ---- ORDER MATTERS ----
-app.UseSession();          // must be before UseRouting
+app.UseSession();
 app.UseRouting();
 
-app.UseAuthentication();   // was commented out � required for User.Identity
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
