@@ -295,11 +295,9 @@ namespace Marathon.Migrations
 
             modelBuilder.Entity("Marathon.Models.UserAccount", b =>
                 {
-                    b.Property<int>("UserAccountId")
+                    b.Property<Guid>("UserAccountId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserAccountId"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()

@@ -17,19 +17,7 @@ namespace Marathon.mvc.Models.dto
         [Display(Name = "Remember me")]
         public bool RememberMe { get; set; }
     }
-    public class LoginResponse
-    {
-        public string Token { get; set; } = string.Empty;
-        public LoginUserDto User { get; set; } = new();
-    }
-
-    public class LoginUserDto
-    {
-        public int UserAccountId { get; set; }
-        public string Email { get; set; } = string.Empty;
-        public string? Role { get; set; }
-    }
-
+   
    
         public class SignUpDTO
         {

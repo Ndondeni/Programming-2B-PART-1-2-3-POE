@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Marathon.Migrations
 {
     [DbContext(typeof(ApplicationDbcontext))]
-    [Migration("20261029082044_AddImageBlobName")]
-    partial class AddImageBlobName
+    [Migration("20261102070833_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -125,6 +125,10 @@ namespace Marathon.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("EventStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EventType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -138,10 +142,6 @@ namespace Marathon.Migrations
 
                     b.Property<DateTime>("Now")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -298,11 +298,9 @@ namespace Marathon.Migrations
 
             modelBuilder.Entity("Marathon.Models.UserAccount", b =>
                 {
-                    b.Property<int>("UserAccountId")
+                    b.Property<Guid>("UserAccountId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserAccountId"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()

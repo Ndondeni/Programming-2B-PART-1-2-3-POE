@@ -2,15 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Marathon.Data;
 using Marathon.Models;
 using Marathon.Models.DTOs;
 using Marathon.Services;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-using System.Runtime.CompilerServices;
 
 namespace Marathon.Controllers
 {
@@ -32,67 +28,46 @@ namespace Marathon.Controllers
             _hasher = hasher;
         }
 
-
-        [HttpPost]
-        public IActionResult AddNewUser(Add_New_UserDTO addDTO)
+        [AllowAnonymous] // 🆕 Allows users to reach this endpoint
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(Add_New_UserDTO addDTO)
         {
-            var user = new User
-            {
-                Username = addDTO.Username,
-                FirstName = addDTO.FirstName,
-                LastName = addDTO.LastName,
-                DateOfBirth = addDTO.DateOfBirth,
-                PhoneNumber = addDTO.PhoneNumber,
-                
-                // server-controlled:
-                CreatedAt = DateTime.UtcNow,
-                LastLogin = DateTime.UtcNow,
-                IsActive = true,
+            if (await _db.accounts.AnyAsync(a => a.Email == addDTO.Email))
+                return BadRequest("Email already exists");
 
-            };
-            
             var userAccount = new UserAccount
             {
-                Email = addDTO.Username, 
-                PasswordHash = _hasher.HashPassword(null, "defaultPassword"), 
-                Role = "User", 
+                Email = addDTO.Email,
+                Role = "User",
+                PasswordHash = string.Empty,
                 UserAccountName = addDTO.FirstName + " " + addDTO.LastName
             };
 
-            _db.users.Add(user);
+            userAccount.PasswordHash = _hasher.HashPassword(userAccount, addDTO.Password);
+
             _db.accounts.Add(userAccount);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
+
+            var user = new User
+            {
+                UserId = userAccount.UserAccountId,
+                Username = addDTO.FirstName.ToLower() + "." + addDTO.LastName.ToLower(),
+                FirstName = addDTO.FirstName,
+                LastName = addDTO.LastName,
+                DateOfBirth = DateOnly.FromDateTime(addDTO.DateOfBirth),
+                PhoneNumber = addDTO.PhoneNumber,
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = DateTime.UtcNow,
+                IsActive = true,
+            };
+
+            _db.users.Add(user);
+            await _db.SaveChangesAsync();
+
             return Ok("User was added successfully");
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDTO regDto)
-        {
-            if (await _db.accounts.AnyAsync(u => u.Email == regDto.Email))
-                return BadRequest("Email already exists");
-
-            var regUser = new UserAccount
-            {
-                Email = regDto.Email,
-                PasswordHash = null, // will be set below
-                Role = "User",   // ignore regDto.Role — prevent self-promotion 
-                UserAccountName = regDto.UserAccountName
-                //Roles — Paticipant, Event Manager or Admin
-            };
-
-            regUser.PasswordHash = _hasher.HashPassword(regUser, regDto.Password);
-
-            _db.accounts.Add(regUser);
-            await _db.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = "Registration successful",
-                userId = regUser.UserAccountId,
-                email = regUser.Email
-            });
-        }
-
+        [AllowAnonymous] // 🆕 Allows users to reach this endpoint
         [HttpPost("login")]
         public async Task<IActionResult> LoginUser(LoginDTO logDto)
         {
@@ -111,46 +86,43 @@ namespace Marathon.Controllers
                 user = new { user.UserAccountId, user.Email, user.Role }
             });
         }
-       
-        [Authorize(Roles = "User/Participant")]
+
+      
+        [Authorize(Roles = "User")]
         [HttpGet("me")]
-        public async Task<IActionResult> GetMyProfile() 
+        public async Task<IActionResult> GetMyProfile()
         {
             var email = User.FindFirstValue(ClaimTypes.Email);
             var user = await _db.accounts.FirstOrDefaultAsync(u => u.Email == email);
 
-
             if (user == null)
-                return NotFound("Student profile not found");
+                return NotFound("User profile not found");
 
-
-            var profile = await _db.accounts
-            .Where(r => r.UserAccountId == user.UserAccountId)
-               .Include(r => r.Role)
-               .Select(r => new
-               {
-                r.UserAccountId,
-                r.Email,
-                r.Role
-            }).FirstOrDefaultAsync();
+           
+            var profile = new
+            {
+                user.UserAccountId,
+                user.Email,
+                user.Role
+            };
 
             return Ok(profile);
         }
-        [Authorize(Roles = "Admin,Lecturer")]
+
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllRegistration()
         {
+           
             var users = await _db.accounts
-            .Include(r => r.UserAccountId)
-            .Include(r => r.Email)
-            .Select(r => new
-            {
-                r.UserAccountId,
-                r.Email,
-                r.Role,
-                r.UserAccountName
-            })
-            .ToListAsync();
+                .Select(r => new
+                {
+                    r.UserAccountId,
+                    r.Email,
+                    r.Role,
+                    r.UserAccountName
+                })
+                .ToListAsync();
 
             return Ok(users);
         }

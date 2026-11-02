@@ -9,35 +9,44 @@
         <h5 class="mb-0">Create New Account</h5>
     </div>
     <div class="card-body">
-        <!-- Notice the asp-action and method -->
-        <form asp-action="Create" method="post">
+
+        <!-- FIX 1: Point the action to "SignUp" (or "Create", depending on your controller) -->
+        <form asp-action="SignUp" method="post">
+
+            <!-- FIX 2: Added the missing Username field -->
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label">Username</label>
+                <input asp-for="Username" class="form-control" required placeholder="johndoe123">
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
 
             <div class="mb-3">
                 <label asp-for="Email" class="form-label">Email</label>
                 <input asp-for="Email" type="email" class="form-control" required placeholder="user@example.com">
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
+
             <div class="mb-3">
-                <label asp-for="FirstName" class="form-label">Firsr Name</label>
-                <input asp-for="FirstName" class="form-control" required placeholder="John Doe">
+                <label asp-for="FirstName" class="form-label">First Name</label>
+                <input asp-for="FirstName" class="form-control" required placeholder="John">
                 <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
+
             <div class="mb-3">
                 <label asp-for="LastName" class="form-label">Surname</label>
-                <input asp-for="LastName" class="form-control" required placeholder="John Doe">
+                <input asp-for="LastName" class="form-control" required placeholder="Doe">
                 <span asp-validation-for="LastName" class="text-danger"></span>
             </div>
-            
+
             <div class="mb-3">
                 <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
                 <input asp-for="DateOfBirth" type="date" class="form-control" required>
                 <span asp-validation-for="DateOfBirth" class="text-danger"></span>
             </div>
 
-
             <div class="mb-3">
                 <label asp-for="PhoneNumber" class="form-label">Cell Phone Number</label>
-                <input asp-for="PhoneNumber"  class="form-control" required>
+                <input asp-for="PhoneNumber" class="form-control" required>
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
 
@@ -46,20 +55,22 @@
                 <input asp-for="Password" type="password" class="form-control" required placeholder="••••••••">
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
+
             <div class="mb-3">
                 <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
                 <input asp-for="ConfirmPassword" type="password" class="form-control" required placeholder="••••••••">
                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
 
+            <!-- FIX 3: Changed from <a> to a proper <button type="submit"> -->
             <div class="d-grid gap-2 mt-4">
-                <a asp-controller="Account" asp-action="SignUp" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary">
                     Create Account
-                </a>
+                </button>
             </div>
 
-            <!-- Display MVC Validation Errors -->
-            <div asp-validation-summary="ModelOnly" class="text-danger mt-3"></div>
+            <!-- Display Validation Errors -->
+            <div asp-validation-summary="All" class="text-danger mt-3"></div>
         </form>
     </div>
 </div>

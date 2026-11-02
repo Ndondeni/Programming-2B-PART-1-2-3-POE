@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Marathon.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreat : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,11 +15,11 @@ namespace Marathon.Migrations
                 name: "accounts",
                 columns: table => new
                 {
-                    UserAccountId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserAccountName = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -77,10 +77,11 @@ namespace Marathon.Migrations
                     DistanceKm = table.Column<float>(type: "real", nullable: false),
                     EventType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EventFee = table.Column<float>(type: "real", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EventStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ImageBlobName = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -118,7 +119,8 @@ namespace Marathon.Migrations
                     pace_pace_km = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     overall_rank = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     prize_money = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    category_rank = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    category_rank = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageBlobName = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

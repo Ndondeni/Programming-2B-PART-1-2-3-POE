@@ -7,6 +7,9 @@ public class AccountController : Controller
     private readonly IHttpClientFactory _http;
     public AccountController(IHttpClientFactory http) => _http = http;
 
+    // ==========================================
+    // LOGIN (Index)
+    // ==========================================
     [HttpGet]
     public IActionResult Index(string? returnUrl = null)
     {
@@ -44,12 +47,15 @@ public class AccountController : Controller
                 return View(model);
             }
 
+            // Save to Session
             HttpContext.Session.SetString("Token", login.Token);
             HttpContext.Session.SetString("Role", login.User?.Role ?? "User");
             HttpContext.Session.SetString("Email", login.User?.Email ?? string.Empty);
 
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
+            if (login.User?.Role == "Admin")
+            {
+                return RedirectToAction("Index", "Admin"); // Send Admins to Admin Dashboard
+            }
 
             return RedirectToAction("Index", "Home");
         }
@@ -65,6 +71,7 @@ public class AccountController : Controller
         }
     }
 
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Logout()
@@ -73,6 +80,7 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    
     [HttpGet]
     public IActionResult SignUp()
     {
@@ -90,20 +98,20 @@ public class AccountController : Controller
 
         var client = _http.CreateClient("ApiClient");
 
+       
         var payload = new
         {
-            model.Username,
-            model.FirstName,
-            model.LastName,
-            model.Email,
-            model.DateOfBirth,
-            model.PhoneNumber,
-            model.Password
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Email = model.Email,
+            DateOfBirth = model.DateOfBirth,
+            PhoneNumber = model.PhoneNumber,
+            Password = model.Password
         };
 
         try
         {
-            var response = await client.PostAsJsonAsync("/api/Auth/register", payload);
+            var response = await client.PostAsJsonAsync("api/Auth/register", payload);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -123,8 +131,9 @@ public class AccountController : Controller
                 return View(model);
             }
 
-            TempData["SignUpSuccess"] = "Account created successfully. Please sign in.";
-            return RedirectToAction("Index","Home");
+          
+            TempData["SuccessMessage"] = "Account created successfully. Please sign in.";
+            return RedirectToAction(nameof(Index));
         }
         catch (HttpRequestException)
         {

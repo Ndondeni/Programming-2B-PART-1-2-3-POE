@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Identity; // Added this to keep things clean
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,14 +35,12 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// 2. Configure Swagger
+// 2. Configure Swagger and Controllers
 builder.Services.AddControllers();
+builder.Services.AddScoped<IPasswordHasher<Marathon.Models.UserAccount>, PasswordHasher<Marathon.Models.UserAccount>>();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    // Prevents Swagger from crashing if you have duplicate routes
-    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-});
+builder.Services.AddSwaggerGen(); // <--- Removed ResolveConflictingActions
 
 // 3. Register Custom Services
 builder.Services.AddScoped<JwtServives>();
@@ -51,7 +50,7 @@ builder.Services.AddDbContext<ApplicationDbcontext>(
     options => options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 5. Azure Blob Storage & Services (MOVED BEFORE Build())
+// Azure Blob Storage & Services 
 var storageConnectionString = builder.Configuration
     .GetConnectionString("StorageConnectionString")
     ?? throw new Exception("Storage connection missing");
@@ -65,9 +64,7 @@ builder.Services.AddAzureClients(clientBuilder =>
     clientBuilder.AddTableServiceClient(builder.Configuration["StorageConnectionString:tableServiceUri"]!).WithName("StorageConnectionString");
 });
 
-// ==========================================
-// BUILD THE APP
-// ==========================================
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -77,7 +74,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// CRITICAL: You must have UseAuthentication() BEFORE UseAuthorization()
 app.UseAuthentication();
 app.UseAuthorization();
 
