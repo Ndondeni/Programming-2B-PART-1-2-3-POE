@@ -55,7 +55,7 @@ The system uses the following tables:
 
 The ERD below shows the main tables and their conceptual relationships.
 
-![Marathon Event Management System ERD](docs/images/marathon-erd.png)
+![Marathon Event Management System ERD](Doc/Picture1.png)
 
 The diagram image is stored at `docs/images/marathon-erd.png`. Keep this folder structure when adding the README and diagram to the repository so the image displays correctly on GitHub.
 
