@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using Marathon.mvc.Models.dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+//using Marathon.Models.DTOs;
 
 namespace Marathon.mvc.Controllers
 {
@@ -23,6 +25,81 @@ namespace Marathon.mvc.Controllers
         {
             var model = await GetListAsync<EventDto>("api/Events") ?? new List<EventDto>();
             return View(model);
+        }
+        // GET: Events/Create
+        [Authorize(Roles = "Admin,Organiser")]
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: Events/Create
+        [Authorize(Roles = "Admin,Organiser")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateEventViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var client = _httpFactory.CreateClient("ApiClient");
+
+            var token = HttpContext.Session.GetString("Token");
+
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            try
+            {
+                var now = DateTime.UtcNow;
+
+                var eventData = new
+                {
+                    eventName = model.EventName,
+                    eventDate = model.EventDate,
+                    now = now,
+                    location = model.Location,
+                    venue = model.Venue,
+                    distanceKm = model.DistanceKm,
+                    eventType = model.EventType,
+                    eventFee = model.EventFee,
+                    status = model.Status,
+                    createdBy = 0, 
+                    createdAt = now,
+                    updatedAt = now
+                };
+
+                var response = await client.PostAsJsonAsync(
+                    "api/Events",
+                    eventData
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Event created successfully!";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                var error = await response.Content.ReadAsStringAsync();
+
+                ModelState.AddModelError("", error);
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not create event.");
+
+                ModelState.AddModelError("", "Could not connect to the API.");
+
+                return View(model);
+            }
         }
 
         public async Task<IActionResult> Details(Guid id)

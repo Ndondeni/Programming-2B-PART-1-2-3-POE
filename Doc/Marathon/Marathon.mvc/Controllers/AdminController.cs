@@ -31,6 +31,7 @@ namespace Marathon.mvc.Controllers
                 ViewBag.ErrorMessage = "An error occurred while loading the dashboard. Please try again later.";
                 return View(new DashboardDto());
             }
+
         }
     }
 }

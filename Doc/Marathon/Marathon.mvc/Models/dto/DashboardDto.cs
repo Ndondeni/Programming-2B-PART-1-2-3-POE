@@ -21,6 +21,8 @@ namespace Marathon.mvc.Models.dto
         public List<EnrolmentDto> RecentEnrolments { get; set; } = new();
         public List<ResultDto> RecentResults { get; set; } = new();
         public List<PaymentDto> Payments { get; set; } = new();
+        public List<Participant_EventDto> ParticipantEvents { get; set; } = new();
+        public List<EventDto> Events { get; set; } = new();
     }
 
     public class UserDto
@@ -52,6 +54,7 @@ namespace Marathon.mvc.Models.dto
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
+    
 
     public class CategoryDto
     {

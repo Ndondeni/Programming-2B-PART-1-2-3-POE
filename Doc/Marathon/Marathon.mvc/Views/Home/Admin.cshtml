@@ -27,10 +27,17 @@
             <h2>Admin dashboard</h2>
             <p>Operations overview across users, events, categories, payments, and results.</p>
         </div>
-        <div>
-            <a class="btn btn-primary" asp-controller="Events" asp-action="Index">New Event</a>
-            <a class="btn btn-primary" asp-controller="Category" asp-action="Index" style="margin-left:10px;">New Category</a>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="add-category-btn"
+                    onclick="openEventModal()">
+                + New Event
+            </button>
+
+            <button type="button" class="add-category-btn" onclick="openCategoryModal()">
+                + Add Category
+            </button>
         </div>
+       
     </div>
 
     <div class="event-stats">
@@ -147,5 +154,188 @@
                 </table>
             </div>
         }
+    </div>
+</div>
+<div id="eventModal" class="category-modal">
+    <div class="category-modal-content">
+
+        <div class="modal-header">
+            <h2>New Event</h2>
+            <button type="button" class="close-btn"
+                    onclick="closeEventModal()">
+                &times;
+            </button>
+        </div>
+
+        <form id="eventForm">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Event Name</label>
+                <input type="text" id="EventName" required />
+            </div>
+
+            <div class="form-group">
+                <label>Event Date</label>
+                <input type="date" id="EventDate" required />
+            </div>
+
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="Location" required />
+            </div>
+
+            <div class="form-group">
+                <label>Venue</label>
+                <input type="text" id="Venue" required />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Distance (KM)</label>
+                    <input type="number" id="DistanceKm"
+                           min="0.1" step="0.1" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Event Fee</label>
+                    <input type="number" id="EventFee"
+                           min="0" step="0.01" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Event Type</label>
+                <select id="EventType" required>
+                    <option value="">Select type</option>
+                    <option value="Running">Running</option>
+                    <option value="Walking">Walking</option>
+                    <option value="Cycling">Cycling</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                <select id="Status" required>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <div id="eventMessage"></div>
+
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn"
+                        onclick="closeEventModal()">
+                    Cancel
+                </button>
+
+                <button type="submit" class="save-btn">
+                    Submit Event
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div id="eventModal" class="category-modal">
+    <div class="category-modal-content">
+
+        <div class="modal-header">
+            <div>
+                <h2>New Marathon Event</h2>
+                <p>Enter the details for your new event.</p>
+            </div>
+
+            <button type="button" class="close-btn"
+                    onclick="closeEventModal()">
+                &times;
+            </button>
+        </div>
+
+        <form asp-controller="Events"
+              asp-action="Create"
+              method="post">
+
+           
+
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Event Name</label>
+                <input type="text" name="EventName"
+                       placeholder="e.g. Johannesburg Marathon" required />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Event Date</label>
+                    <input type="date" name="EventDate" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Event Time</label>
+                    <input type="datetime-local" name="Now" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" name="Location"
+                       placeholder="Enter location" required />
+            </div>
+
+            <div class="form-group">
+                <label>Venue</label>
+                <input type="text" name="Venue"
+                       placeholder="Enter venue" required />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Distance (KM)</label>
+                    <input type="number" name="DistanceKm"
+                           step="0.1" min="0.1" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Event Fee (R)</label>
+                    <input type="number" name="EventFee"
+                           step="0.01" min="0" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Event Type</label>
+                <select name="EventType" required>
+                    <option value="">Select event type</option>
+                    <option value="Running">Running</option>
+                    <option value="Walking">Walking</option>
+                    <option value="Cycling">Cycling</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                <select name="Status" required>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn"
+                        onclick="closeEventModal()">
+                    Cancel
+                </button>
+
+                <button type="submit" class="save-btn">
+                    Create Event
+                </button>
+            </div>
+        </form>
     </div>
 </div>
