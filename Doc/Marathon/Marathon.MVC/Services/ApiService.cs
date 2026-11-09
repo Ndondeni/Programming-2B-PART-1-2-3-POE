@@ -10,7 +10,7 @@ public class ApiService
 
     public ApiService(IHttpClientFactory factory, IHttpContextAccessor httpContext)
     {
-        _http = factory.CreateClient("RaceDayApi");
+        _http = factory.CreateClient("MarathonApi");
         _httpContext = httpContext;
     }
 
