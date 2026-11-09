@@ -1,78 +1,39 @@
-﻿@model List<Marathon.mvc.Models.dto.EventDto>
-@{
-    ViewData["Title"] = "Events";
-    string StatusClass(string? status)
+﻿@model List<EventViewModel>
+@{ ViewData["Title"] = "Events"; }
+<h2 class="mb-4">Upcoming Events</h2>
+<form method="get" class="mb-4 d-flex gap-2">
+    <select name="eventType" class="form-select w-auto">
+        <option value="">All Types</option>
+        <option value="Run" selected="@(ViewBag.EventType == "Run")">Run</option>
+        <option value="Walk" selected="@(ViewBag.EventType == "Walk")">Walk</option>
+        <option value="Cycle" selected="@(ViewBag.EventType == "Cycle")">Cycle</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+</form>
+<div class="row g-4">
+    @foreach (var ev in Model)
     {
-        if (string.IsNullOrWhiteSpace(status)) return "status status-ended";
-        var s = status.Trim();
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-event h-100 shadow-sm">
+                @if (!string.IsNullOrEmpty(ev.BannerImageUrl))
+                {
+                    <img src="@ev.BannerImageUrl" class="card-img-top" style="height:180px;object-fit:cover;" alt="@ev.Title" />
+                }
+                <div class="card-body">
+                    <span class="badge bg-primary mb-2">@ev.EventType</span>
+                    <h5 class="card-title">@ev.Title</h5>
+                    <p class="card-text text-muted small">@ev.Description</p>
+                    <p class="mb-1"><strong> &#128197;</strong> @ev.Date.ToString("dd MMM yyyy")</p>
+                    <p class="mb-1"><strong> &#128205;</strong> @ev.Location</p>
+                    <p class="mb-1"><strong> &#127939;</strong> @ev.Distance km — @ev.OrganiserName</p>
+                </div>
+                <div class="card-footer">
+                <a asp-action="Details" asp-route-id="@ev.Id" class="btn btn-outline-primary w-100">View Details</a>
+                   
+                </div>
 
-        if (s.Equals("Upcoming", StringComparison.OrdinalIgnoreCase) ||
-            s.Equals("Pending", StringComparison.OrdinalIgnoreCase))
-            return "status status-upcoming";
-
-        if (s.Equals("Active", StringComparison.OrdinalIgnoreCase) ||
-            s.Equals("Paid", StringComparison.OrdinalIgnoreCase))
-            return "status status-active";
-
-        return "status status-ended";
+            </div>
+        </div>
     }
-}
-<link rel="stylesheet" href="~/css/dashboard.css" />
-
-<div class="events-page">
-    <partial name="_Toast" />
-
-    <div class="page-heading">
-        <div>
-            <h2>Events</h2>
-            <p>All current marathon and event listings.</p>
-        </div>
-    </div>
-
-    <div class="event-section">
-        <div class="section-heading">
-            <h4>All Events</h4>
-            <span class="count-badge">@Model.Count</span>
-        </div>
-
-        @if (!Model.Any())
-        {
-            <div class="empty-state">
-                <h5>No events found</h5>
-                <p>No event records are available right now.</p>
-            </div>
-        }
-        else
-        {
-            <div class="table-wrap">
-                <table class="event-table">
-                    <thead>
-                        <tr>
-                            <th>Event</th>
-                            <th>Location</th>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Fee</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="event-name">@item.EventName</td>
-                                <td>@item.Location</td>
-                                <td>@item.EventDate.ToString("dd MMM yyyy")</td>
-                                <td>@item.EventType</td>
-                                <td>R @item.EventFee.ToString("0.00")</td>
-                                <td><span class="@StatusClass(item.EventStatus)">@item.EventStatus</span></td>
-                                <td><a asp-action="Details" asp-route-id="@item.EventId">View</a></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </div>
+    @if (!Model.Any()) { <p class="text-muted">No events found.</p> }
 </div>

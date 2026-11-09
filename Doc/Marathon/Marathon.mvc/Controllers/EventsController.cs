@@ -1,143 +1,75 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using Marathon.mvc.Models.dto;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-//using Marathon.Models.DTOs;
+﻿using Microsoft.AspNetCore.Mvc;
+using Marathon.MVC.Attributes;
+using Marathon.MVC.Models;
+using Marathon .MVC.Services;
 
-namespace Marathon.mvc.Controllers
+namespace Marathon.MVC.Controllers;
+
+[SessionAuthorize]
+public class EventsController : Controller
 {
-    [Authorize]
-    public class EventsController : Controller
+    private readonly ApiService _api;
+
+    public EventsController(ApiService api) => _api = api;
+
+    
+    public async Task<IActionResult> Index(string? eventType)
     {
-        private readonly IHttpClientFactory _httpFactory;
-        private readonly ILogger<EventsController> _logger;
+        var url = "api/events" + (string.IsNullOrEmpty(eventType) ? "" : $"?eventType={eventType}");
+        var events = await _api.GetAsync<List<EventViewModel>>(url) ?? new();
+        ViewBag.EventType = eventType;
+        return View(events);
+    }
 
-        public EventsController(IHttpClientFactory httpFactory, ILogger<EventsController> logger)
+    // 2. GET: /Events/Details/1
+    public async Task<IActionResult> Details(int id)
+    {
+        
+        if (id == 0) return Content("Error: The Event ID was 0. The link on the Index page is broken.");
+
+        var ev = await _api.GetAsync<EventViewModel>($"api/events/{id}");
+
+        if (ev == null) return NotFound();
+
+        return View(ev);
+    }
+
+    
+    [SessionAuthorize(Role = "Participant")]
+    [HttpPost]
+    public async Task<IActionResult> Enrol(int eventId, int categoryId)
+    {
+        if (eventId == 0)
         {
-            _httpFactory = httpFactory;
-            _logger = logger;
+            return Content("Error: The form did not send a valid Event ID.");
         }
 
-        // ---------- READ ----------
-        public async Task<IActionResult> Index()
+        var (success, error) = await _api.PostAsync("api/enrolments",
+            new { EventId = eventId, CategoryId = categoryId });
+
+        if (success)
         {
-            var model = await GetListAsync<EventDto>("api/Events") ?? new List<EventDto>();
-            return View(model);
-        }
-        // GET: Events/Create
-        [Authorize(Roles = "Admin,Organiser")]
-        [HttpGet]
-        public IActionResult Create()
-        {
-            return View();
+            TempData["Success"] = "Enrolment submitted!";
+            return RedirectToAction("MyEnrolments");
         }
 
-        // POST: Events/Create
-        [Authorize(Roles = "Admin,Organiser")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateEventViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+        TempData["Error"] = $"Enrolment failed: {error}";
+        return RedirectToAction("Details", new { id = eventId });
+    }
 
-            var client = _httpFactory.CreateClient("ApiClient");
+   
+    [SessionAuthorize(Role = "Participant")]
+    public async Task<IActionResult> MyEnrolments()
+    {
+        var enrolments = await _api.GetAsync<List<EnrolmentViewModel>>("api/enrolments/my-enrolments") ?? new();
+        return View(enrolments);
+    }
 
-            var token = HttpContext.Session.GetString("Token");
-
-            if (!string.IsNullOrWhiteSpace(token))
-            {
-                client.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token);
-            }
-
-            try
-            {
-                var now = DateTime.UtcNow;
-
-                var eventData = new
-                {
-                    eventName = model.EventName,
-                    eventDate = model.EventDate,
-                    now = now,
-                    location = model.Location,
-                    venue = model.Venue,
-                    distanceKm = model.DistanceKm,
-                    eventType = model.EventType,
-                    eventFee = model.EventFee,
-                    status = model.Status,
-                    createdBy = 0, 
-                    createdAt = now,
-                    updatedAt = now
-                };
-
-                var response = await client.PostAsJsonAsync(
-                    "api/Events",
-                    eventData
-                );
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["Success"] = "Event created successfully!";
-                    return RedirectToAction("Index", "Home");
-                }
-
-                var error = await response.Content.ReadAsStringAsync();
-
-                ModelState.AddModelError("", error);
-
-                return View(model);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Could not create event.");
-
-                ModelState.AddModelError("", "Could not connect to the API.");
-
-                return View(model);
-            }
-        }
-
-        public async Task<IActionResult> Details(Guid id)
-        {
-            var model = await GetListAsync<EventDto>("api/Events") ?? new List<EventDto>();
-            var item = model.FirstOrDefault(e => e.EventId == id);
-
-            if (item is null)
-                return NotFound();
-
-            return View(item);
-        }
-
-        private async Task<List<T>?> GetListAsync<T>(string path)
-        {
-            var client = _httpFactory.CreateClient("ApiClient");
-            using var request = new HttpRequestMessage(HttpMethod.Get, path);
-
-            var token = HttpContext.Session.GetString("Token");
-            if (!string.IsNullOrWhiteSpace(token))
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            try
-            {
-                using var response = await client.SendAsync(request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Event API call failed: {StatusCode} {Path}", response.StatusCode, path);
-                    return null;
-                }
-
-                return await response.Content.ReadFromJsonAsync<List<T>>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Could not retrieve data from {Path}", path);
-                return null;
-            }
-        }
+   
+    [SessionAuthorize(Role = "Participant")]
+    public async Task<IActionResult> MyResults()
+    {
+        var results = await _api.GetAsync<List<ResultViewModel>>("api/results/my-results") ?? new();
+        return View(results);
     }
 }

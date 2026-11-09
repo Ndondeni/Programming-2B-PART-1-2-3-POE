@@ -1,144 +1,65 @@
-﻿using System.Net.Http.Json;
-using Marathon.mvc.Models.dto;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Marathon.MVC.Models;
+using Marathon.MVC.Services;
+
+namespace Marathon.MVC.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly IHttpClientFactory _http;
-    public AccountController(IHttpClientFactory http) => _http = http;
+    private readonly ApiService _api;
+    public AccountController(ApiService api) => _api = api;
 
-    // ==========================================
-    // LOGIN (Index)
-    // ==========================================
     [HttpGet]
-    public IActionResult Index(string? returnUrl = null)
-    {
-        if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString("Token")))
-            return RedirectToAction("Index", "Home");
-
-        ViewData["ReturnUrl"] = returnUrl;
-        return View(new LoginDTO());
-    }
+    public IActionResult Login() => View(new LoginViewModel());
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index(LoginDTO model, string? returnUrl = null)
+    public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
 
-        var client = _http.CreateClient("ApiClient");
+        var (data, error) = await _api.PostAndReadAsync<LoginResult>("api/auth/login", model);
 
-        try
+        if (data == null || string.IsNullOrEmpty(data.Token))
         {
-            var response = await client.PostAsJsonAsync("api/Auth/login",
-                new { Email = model.Email, Password = model.Password });
-
-            if (!response.IsSuccessStatusCode)
-            {
-                ModelState.AddModelError(string.Empty, "Invalid email or password.");
-                return View(model);
-            }
-
-            var login = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-            if (login is null || string.IsNullOrWhiteSpace(login.Token))
-            {
-                ModelState.AddModelError(string.Empty, "Login failed. Please try again.");
-                return View(model);
-            }
-
-            // Save to Session
-            HttpContext.Session.SetString("Token", login.Token);
-            HttpContext.Session.SetString("Role", login.User?.Role ?? "User");
-            HttpContext.Session.SetString("Email", login.User?.Email ?? string.Empty);
-
-            if (login.User?.Role == "Admin")
-            {
-                return RedirectToAction("Index", "Admin"); // Send Admins to Admin Dashboard
-            }
-
-            return RedirectToAction("Index", "Home");
-        }
-        catch (HttpRequestException)
-        {
-            ModelState.AddModelError(string.Empty, "Login service is unavailable. Please start the API and try again.");
+            ModelState.AddModelError("", error ?? "Invalid email or password.");
             return View(model);
         }
-        catch (TaskCanceledException)
-        {
-            ModelState.AddModelError(string.Empty, "The login request timed out. Please try again.");
-            return View(model);
-        }
+
+       
+        HttpContext.Session.SetString("JWToken", data.Token);
+        HttpContext.Session.SetString("UserRole", data.Role);
+        HttpContext.Session.SetString("UserName", data.UserName);
+
+        return RedirectToAction("Index", "Events");
     }
-
+    [HttpGet]
+    public IActionResult Register() => View(new RegisterViewModel());
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+        var (success, _) = await _api.PostAsync("api/auth/register",
+            new { model.Name, model.Email, model.Password, model.Role });
+        if (!success)
+        {
+            ModelState.AddModelError("", "Registration failed. Email may already exist.");
+            return View(model);
+        }
+        TempData["Success"] = "Registered! Please log in.";
+        return RedirectToAction("Login");
+    }
+
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Login");
     }
 
-    
-    [HttpGet]
-    public IActionResult SignUp()
+    private class LoginResult
     {
-        if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString("Token")))
-            return RedirectToAction("Index", "Home");
-
-        return View(new SignUpDTO());
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SignUp(SignUpDTO model)
-    {
-        if (!ModelState.IsValid) return View(model);
-
-        var client = _http.CreateClient("ApiClient");
-
-       
-        var payload = new
-        {
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            Email = model.Email,
-            DateOfBirth = model.DateOfBirth,
-            PhoneNumber = model.PhoneNumber,
-            Password = model.Password
-        };
-
-        try
-        {
-            var response = await client.PostAsJsonAsync("api/Auth/register", payload);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-
-                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                    ModelState.AddModelError(string.Empty,
-                        string.IsNullOrWhiteSpace(error)
-                            ? "An account with this email already exists."
-                            : error);
-                else
-                    ModelState.AddModelError(string.Empty,
-                        string.IsNullOrWhiteSpace(error)
-                            ? "Registration failed. Please try again."
-                            : error);
-
-                return View(model);
-            }
-
-          
-            TempData["SuccessMessage"] = "Account created successfully. Please sign in.";
-            return RedirectToAction(nameof(Index));
-        }
-        catch (HttpRequestException)
-        {
-            ModelState.AddModelError(string.Empty, "Registration service is unavailable. Try again.");
-            return View(model);
-        }
+        public string Token { get; set; } = "";
+        public string UserName { get; set; } = "";
+        public string Role { get; set; } = "";
     }
 }

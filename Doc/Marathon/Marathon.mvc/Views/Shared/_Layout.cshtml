@@ -3,117 +3,95 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Marathon.mvc</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Marathon.mvc.styles.css" asp-append-version="true" />
+    <title>@ViewData["Title"] - RaceDay</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+    background: #F0F8FF;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #2563A6;
+}
+
+.hero {
+    background: linear-gradient(135deg, #87CEEB, #4169E1);
+    color: white;
+    padding: 4rem 2rem;
+    border-radius: .5rem;
+}
+
+.card-event {
+    transition: transform .2s;
+    background: #FFFFFF;
+    border: 1px solid #D6EAF8;
+}
+
+.card-event:hover {
+    transform: translateY(-4px);
+}
+
+.badge-confirmed {
+    background: #4682B4;
+    color: white;
+}
+
+.badge-pending {
+    background: #BDE0FE;
+    color: #174A70;
+}
+    </style>
 </head>
-<body class="app-body">
-
-    <!-- ===== TOP NAVIGATION BAR ===== -->
-    <header class="app-topbar">
-        <div class="app-brand">
-            <i class="fa fa-trophy" style="color: #3b82f6;"></i>
-            <span>Marathon.mvc</span>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <div class="container">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">RaceDay</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">Events</a></li>
+                @if (Context.Session.GetString("UserRole") == "Participant")
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="MyEnrolments">My Enrolments</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="MyResults">My Results</a></li>
+                }
+                @if (Context.Session.GetString("UserRole") == "Admin")
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Organiser" asp-action="Dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Organiser" asp-action="CreateEvent">Create Event</a></li>
+                }
+            </ul>
+            <ul class="navbar-nav">
+                @if (Context.Session.GetString("JWToken") != null)
+                {
+                    <li class="nav-item"><span class="navbar-text me-2"> @Context.Session.GetString("UserName") (@Context.Session.GetString("UserRole"))</span></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                }
+                else
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Register">Register</a></li>
+                }
+            </ul>
         </div>
-
-        <div class="app-search">
-            <i class="fa fa-search"></i>
-            <input type="text" placeholder="Search events, categories..." />
-        </div>
-
-        <div class="app-topbar-right">
-            <button class="top-icon-btn" aria-label="Notifications">
-                <i class="fa fa-bell-o"></i>
-                <span class="top-badge">3</span>
-            </button>
-            <button class="top-icon-btn" aria-label="Messages">
-                <i class="fa fa-envelope-o"></i>
-            </button>
-            <div class="top-avatar">
-                <img src="https://source.unsplash.com/36x36/?human" alt="User" />
-            </div>
-        </div>
-    </header>
-
-    <!-- ===== LAYOUT ===== -->
-    <div class="app-layout">
-
-        
-        <aside class="app-sidebar">
-            <nav class="sidebar-nav">
-                <ul>
-                    <li>
-                        <a asp-controller="Home" asp-action="Index">
-                            <i class="fa fa-home"></i><span>Home</span>
-                        </a>
-                    </li>
-                    <li>
-                       
-                        <a asp-controller="Events" asp-action="Details">
-                            <i class="fa fa-calendar"></i><span>Events</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="Category" asp-action="Index">
-                            <i class="fa fa-th-large"></i><span>Categories</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="Result" asp-action="Index">
-                            <i class="fa fa-bar-chart"></i><span>Result</span>
-                        </a>
-                    </li>
-
-                  
-                    @if (Context.Session.GetString("Token") != null)
-                    {
-                        <li>
-                            <a asp-controller="Profile" asp-action="Index">
-                                <i class="fa fa-user-o"></i><span>Profile</span>
-                            </a>
-                        </li>
-                    }
-
-                    <hr style="border-color: #e2e8f0; margin: 15px 0;" />
-
-                 
-                    @if (Context.Session.GetString("Token") == null)
-                    {
-                        <li>
-                            <a asp-controller="Account" asp-action="Index">
-                                <i class="fa fa-sign-in"></i><span>Login / Sign Up</span>
-                            </a>
-                        </li>
-                    }
-                    else
-                    {
-                        <li style="padding: 10px 20px; color: #64748b; font-size: 13px; word-break: break-all;">
-                            <i class="fa fa-user-circle"></i> @Context.Session.GetString("Email")
-                        </li>
-                        <li>
-                            <form asp-controller="Account" asp-action="Logout" method="post">
-                                <button type="submit" style="background: none; border: none; color: #ef4444; padding: 12px 20px; width: 100%; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500;">
-                                    <i class="fa fa-sign-out"></i> Logout
-                                </button>
-                            </form>
-                        </li>
-                    }
-                </ul>
-            </nav>
-        </aside>
-
-       
-        <main class="app-main">
-            @RenderBody()
-        </main>
-
     </div>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+</nav>
+<main class="container my-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @RenderBody()
+</main>
+<footer class="text-center text-muted py-4">© @DateTime.Now.Year RaceDay — Sports Event Management</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
